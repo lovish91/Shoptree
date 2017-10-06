@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/theme_icons"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/my_awesome_color"
+            android:padding="15dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="4dp">
+    <ImageView
+        android:id="@+id/vert_category_title_img"
+        android:src="@drawable/fruit"
+        android:layout_width="80dp"
+        android:layout_height="80dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/vert_category_title_img"
+        android:id="@+id/vert_category_title"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:textSize="18sp"
+        android:text="category"
+        android:textColor="@color/theme_background_inverse"/>
+         <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+             android:layout_below="@+id/vert_category_title"
+           android:layout_toRightOf="@id/vert_category_title_img"
+             android:layout_marginTop="10dp"
+             android:layout_marginLeft="20dp"
+             android:id="@+id/vert_category_desciption"
+             android:textSize="15sp"
+             android:text="Description"
+           />
+        </RelativeLayout>
+
+
+</RelativeLayout>

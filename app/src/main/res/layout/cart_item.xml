@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingBottom="2dp">
+
+<android.support.v7.widget.CardView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="1dp"
+    android:layout_marginTop="0dp"
+    android:layout_marginBottom="0dp">
+
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/Product_Img"
+        android:layout_marginRight="10dp"/>
+
+    <TextView
+        android:id="@+id/Product_Title"
+        android:layout_toRightOf="@id/Product_Img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:textColor="@color/theme_background_inverse"
+        android:text="title"/>
+
+    <TextView
+        android:id="@+id/Product_Unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/Product_Img"
+        android:layout_below="@+id/Product_Title"
+        android:layout_marginTop="5dp"
+        android:text="Unit"/>
+
+    <TextView
+        android:id="@+id/Product_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/Product_Unit"
+        android:layout_toRightOf="@+id/Product_Img"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="2sp"
+        android:text="price"/>
+    <ImageButton
+        android:id="@+id/Product_remove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/ic_delete_forever_black_24dp"/>
+    <LinearLayout
+        android:id="@+id/main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/Product_Unit">
+            <ImageButton
+                android:id="@+id/Product_minus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="3dp"
+                android:background="@drawable/addproductbutton"
+                android:src="@drawable/ic_remove_black_24dp"/>
+        <TextView
+            android:id="@+id/Product_quantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:layout_gravity="center_vertical"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:textSize="15dp"/>
+        <ImageButton
+            android:id="@+id/Product_plus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="3dp"
+            android:background="@drawable/addproductbutton"
+            android:src="@drawable/ic_add_black_24dp"/>
+    </LinearLayout>
+    <View
+        android:id="@+id/divider"
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/main"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/theme_icons" />
+    <TextView
+        android:id="@+id/TotalAmount"
+        android:text="sdf"
+        android:layout_marginTop="4dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:textSize="17sp"
+        android:gravity="center_vertical"
+        android:textColor="@color/theme_background_inverse"
+        android:layout_below="@+id/divider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</RelativeLayout>
+</android.support.v7.widget.CardView>
+</RelativeLayout>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.app.shoptree.shoptree.MyAddressActivity">
+
+    <RelativeLayout
+        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <ListView
+        android:id="@+id/addresslist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </ListView>
+    <RelativeLayout
+        android:id="@+id/myaddressfooter"
+        android:background="@color/my_awesome_color"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+        <TextView
+            android:id="@+id/myaddressGrandTotal"
+            android:layout_margin="10dp"
+            android:textSize="20sp"
+            android:paddingLeft="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/theme_background_inverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:text="Total Amount" />
+        <Button
+            android:id="@+id/continueToCart"
+            android:text="Continue"
+            android:background="@color/theme_primary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="5dp" />
+    </RelativeLayout>
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/myaddresstoolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#3a3737"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Address"
+            android:layout_marginLeft="0dp"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="20sp"
+            android:textStyle="bold|italic" />
+    </android.support.v7.widget.Toolbar>
+    <com.miguelcatalan.materialsearchview.MaterialSearchView
+        android:id="@+id/search_views"
+        android:inputType="textNoSuggestions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    </FrameLayout>
+</FrameLayout>

@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">SHOPPTREE</string>
+    <string-array name="query_suggestions">
+        <item>Android</item>
+        <item>iOS</item>
+        <item>SCALA</item>
+        <item>Ruby</item>
+        <item>JavaScript</item>
+    </string-array>
+    <string name="Rs">\u20B9</string>
+
+    <string name="facebook_app_id">117617075553181</string>
+    <string name="fb_login_protocol_scheme">fb117617075553181</string>
+</resources>

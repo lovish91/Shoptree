@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.app.shoptree.shoptree.AccountActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="30dp">
+        <ImageView
+            android:id="@+id/Userdp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icon"/>
+            <TextView
+                android:layout_toRightOf="@+id/Userdp"
+                android:id="@+id/Username"
+                android:layout_marginLeft="10dp"
+                android:textSize="18dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Username" />
+            <TextView
+                android:layout_margin="10dp"
+                android:layout_below="@+id/Username"
+                android:layout_toRightOf="@+id/Userdp"
+                android:id="@+id/UserEmailid"
+                android:text="User Id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/myorderhistory"
+                android:layout_margin="10dp"
+                android:textSize="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Order History"/>
+            <View
+                android:layout_marginTop="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/theme_secondary_text_inverted" />
+            <TextView
+                android:id="@+id/mydeliveryaddress"
+                android:textSize="20dp"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Delivery Addresses"/>
+            <View
+                android:layout_marginTop="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/theme_secondary_text_inverted" />
+            <TextView
+                android:id="@+id/myorder"
+                android:textSize="20dp"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="My Order"/>
+            <View
+                android:layout_marginTop="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/theme_secondary_text_inverted" />
+            <TextView
+                android:id="@+id/logout"
+                android:textSize="20dp"
+                android:layout_margin="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logout"/>
+            <View
+                android:layout_marginTop="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/theme_secondary_text_inverted" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/AcctountToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:background="#3a3737"
+        android:elevation="4dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimaryDark"
+                android:text="My Account" />
+        </LinearLayout>
+
+    </android.support.v7.widget.Toolbar>
+</FrameLayout>
