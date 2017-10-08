@@ -10,6 +10,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,10 +30,12 @@ import android.widget.Toast;
 
 
 import com.app.shoptree.shoptree.Adapter.Category_Adapter;
+import com.app.shoptree.shoptree.Adapter.ProductList_RecycleAdapter;
 import com.app.shoptree.shoptree.Adapter.Product_List_Adapter;
 import com.app.shoptree.shoptree.Adapter.SubCat_Adapter;
 import com.app.shoptree.shoptree.Utilities.ExpandedGridView;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
+import com.app.shoptree.shoptree.database.MyDb;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.CategoryModel;
 
@@ -66,8 +70,10 @@ public class CategoryActivity extends AppCompatActivity {
     LayerDrawable mCartMenuIcon;
     private MenuItem search,cart;
     SharedPrefs sharedPrefs;
-    private Product_List_Adapter2 product_adapter;
     private String catId;
+    private RecyclerView product_grid;
+    private static long countproductoncart=0;
+    private ProductList_RecycleAdapter productList_recycleAdapter;
 
 
     @Override
@@ -84,15 +90,25 @@ public class CategoryActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
-        //textView = (TextView) findViewById(R.id.jsontext);
-        //textViewconnection = (TextView) findViewById(R.id.apiconnected);
-        //TextView textView1 = (TextView) findViewById(R.id.putextra);
         catId = getIntent().getStringExtra("categoryId");
         String catName = getIntent().getStringExtra("categoryname");
         toolbar.setTitle(catName);
         getSupportActionBar().setTitle(catName);
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorPrimaryDark));
         sharedPrefs = new SharedPrefs();
+
+        product_grid = (RecyclerView) findViewById(R.id.product_grid2);
+        int numberOfColumns = 3;
+        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
+        product_grid.setLayoutManager(manager);
+        product_grid.getLayoutManager().setAutoMeasureEnabled(true);
+        product_grid.setNestedScrollingEnabled(false);
+        product_grid.setHasFixedSize(false);
+
+        MyDb myDb = new MyDb(getBaseContext());
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
 
         //textView1.setText(catId);
         gridView = (ExpandedGridView) findViewById(R.id.sub_cat_grid);
@@ -101,6 +117,9 @@ public class CategoryActivity extends AppCompatActivity {
         if(isConnected()){
             //textViewconnection.setBackgroundColor(0xFF00CC00);
             //textViewconnection.setText("You are conncted");
+            new aHttpAsyncTask().execute("https://shopptree.com/api/Api_Categories/"+catId);
+            new bHttpAsyncTask().execute("https://shopptree.com/api/Api_Products/"+catId);
+
         }
         else{
             textViewconnection.setText("You are NOT conncted");
@@ -108,21 +127,23 @@ public class CategoryActivity extends AppCompatActivity {
         //APIClient();
         //APIService apiService = APIClient().get
         // call AsynTask to perform network operation on separate thread
-        new aHttpAsyncTask().execute("https://shopptree.com/api/Api_Categories/"+catId);
+
         //new AddtocartTask().execute("http://shopptree.com/api/Api_Carts/?id=10002&qty=33&cartid=1111");
     }
 
 
     protected void onStart() {
         super.onStart();
-        new bHttpAsyncTask().execute("https://shopptree.com/api/Api_Products/"+catId);
 
         Log.d("lifecycle","onStart invoked");
     }
     @Override
     protected void onResume() {
         super.onResume();
-        MainActivity.countproductoncart = sharedPrefs.getCartCount(getBaseContext());
+        MyDb myDb = new MyDb(getBaseContext());
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
         invalidateOptionsMenu();
         Log.d("lifecycle","onResume invoked");
     }
@@ -153,10 +174,9 @@ public class CategoryActivity extends AppCompatActivity {
         //searchView.setMenuItem(search);
         cart =(MenuItem) menu.findItem(R.id.action_cart);
         ArrayList<CartModel> cartModels = new ArrayList<>();
-        MainActivity.countproductoncart = sharedPrefs.getCartCount(getBaseContext());
 
 
-        setBadgeCount(this, mCartMenuIcon, String.valueOf(MainActivity.countproductoncart));
+        setBadgeCount(this, mCartMenuIcon, String.valueOf(countproductoncart));
         cart.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -246,10 +266,14 @@ public class CategoryActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(ArrayList<Product> result) {
             //Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
-            product_adapter = new Product_List_Adapter2(getBaseContext(),result);
-            productgridview.setAdapter(product_adapter);
-            productgridview.setExpanded(true);
+            //product_adapter = new Product_List_Adapter2(getBaseContext(),result);
+            //productgridview.setAdapter(product_adapter);
+            //productgridview.setExpanded(true);
             //textView.setText(result.toString());
+            productList_recycleAdapter = new ProductList_RecycleAdapter(getBaseContext(), result);
+            product_grid.setAdapter(productList_recycleAdapter);
+
+
         }
     }
 
@@ -272,250 +296,8 @@ public class CategoryActivity extends AppCompatActivity {
         }
     }*/
 
-    public class Product_List_Adapter2 extends BaseAdapter {
-
-        private Context mcontext;
-        private ArrayList<Product> products;
-        private SharedPrefs sharedPrefs = new SharedPrefs();
-        private ArrayList<TestModel> cartModels = new ArrayList<>();
-        private  LayoutInflater inflater = null;
-        private int count ;
 
 
-        public Product_List_Adapter2(Context context, ArrayList<Product> products){
-            this.products = products;
-            this.mcontext = context;
-            //this.imgId = ImageId;
-            inflater = ( LayoutInflater )context.
-                    getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        }
-
-        public boolean checkAvailability(String pmid){
-
-
-            for(TestModel a : cartModels){
-                if(pmid.equals(a.getPMID().toString())){
-                    Log.i("InputStream", String.valueOf(cartModels.size()));
-                    return true;
-                }
-
-            }
-            return false;
-        }
-        @Override
-        public int getCount() {
-            return products.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return 0;
-        }
-
-        public class Holder
-        {
-            TextView prodctName;
-            ImageView prodctImg;
-            TextView productunit;
-            TextView productdisc;
-            TextView productnewprice;
-            TextView productoldprice;
-            TextView Product_quantity;
-            ImageButton add,minus;
-            Button addToCart;
-            LinearLayout Product_add_minus;
-            RelativeLayout Productmain;
-        }
-        @Override
-        public View getView(final int position, View view, ViewGroup viewGroup) {
-            cartModels = sharedPrefs.getCart(mcontext);
-            final Holder holder=new Holder();
-            View rowView;
-            final Product product = products.get(position);
-            rowView = inflater.inflate(R.layout.product_item, null);
-            holder.prodctName = (TextView) rowView.findViewById(R.id.product_tit);
-            holder.prodctImg = (ImageView) rowView.findViewById(R.id.product_img);
-            holder.productunit = (TextView) rowView.findViewById(R.id.product_unit);
-            holder.productdisc = (TextView) rowView.findViewById(R.id.product_disc);
-            holder.productnewprice = (TextView) rowView.findViewById(R.id.product_newPrc);
-            holder.productoldprice = (TextView) rowView.findViewById(R.id.product_oldPrc);
-            holder.productoldprice.setPaintFlags(holder.productoldprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-
-            holder.addToCart = (Button) rowView.findViewById(R.id.add_product);
-            holder.Productmain = (RelativeLayout) rowView.findViewById(R.id.mainProductView);
-            holder.minus = (ImageButton) rowView.findViewById(R.id.Product_mns);
-            holder.add = (ImageButton) rowView.findViewById(R.id.Product_pls);
-            holder.Product_add_minus = (LinearLayout) rowView.findViewById(R.id.Product_add_minus);
-            holder.Product_quantity = (TextView) rowView.findViewById(R.id.Product_quty);
-
-            for(TestModel a : cartModels){
-                if(product.getPmId().equals(a.getPMID())){
-                    Log.i("InputStream", String.valueOf(cartModels.size()));
-                    holder.Product_add_minus.setVisibility(View.VISIBLE);
-                    holder.addToCart.setVisibility(View.INVISIBLE);
-                    holder.Productmain.setBackgroundResource(R.drawable.productborder);
-                    holder.Product_quantity.setText(String.valueOf(a.getCartQty()));
-                    count = (a.getCartQty());
-                }
-            }
-            holder.add.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        count = count + 1;
-                        Log.i("button",String.valueOf(count));
-                        JSONObject jsonParam = new JSONObject();
-                        jsonParam.put("CartID","001");
-                        jsonParam.put("PMID",Integer.valueOf(product.getPmId()));
-                        jsonParam.put("CartQty",count);
-                        jsonParam.put("CartAmount",product.getProductNewPrice() * Double.valueOf(count));
-                        new Addtocart(jsonParam).execute("https://shopptree.com/api/Api_Updatecart");
-                        product.setProductQuantity(String.valueOf(count));
-                        holder.Product_quantity.setText(String.valueOf(count));
-                        sharedPrefs.SaveCart(mcontext,cartModels);
-                        //notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            holder.minus.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        if (count > 1){
-                            count = count-1;
-
-                            JSONObject jsonParam = new JSONObject();
-                            jsonParam.put("CartID","001");
-                            jsonParam.put("PMID",Integer.valueOf(product.getPmId()));
-                            jsonParam.put("CartQty",count);
-                            jsonParam.put("CartAmount",product.getProductNewPrice() * Double.valueOf(count));
-                            new Addtocart(jsonParam).execute("https://shopptree.com/api/Api_Updatecart");
-                            product.setProductQuantity(String.valueOf(count));
-                            holder.Product_quantity.setText(String.valueOf(count));
-                            sharedPrefs.SaveCart(mcontext, cartModels);
-                            //notifyDataSetChanged();
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    //if(count ==0 || count ==1){
-                    //  cartModels.remove(position);
-                    //sharedPrefs.SaveCart(mcontext, cartModels);
-                    //notifyDataSetChanged();
-                    //}
-                }
-            });
-
-
-            holder.prodctName.setText(product.getProductName());
-            holder.productunit.setText(product.getUnit());
-            double disc = Math.round(100 - ((double)product.getProductNewPrice())*100/(double)product.getProductOldPrice());
-            DecimalFormat df = new DecimalFormat("0.#");
-            if (disc==0.0){
-                holder.productdisc.setVisibility(View.INVISIBLE);
-                holder.productoldprice.setVisibility(View.INVISIBLE);
-            }else {
-                holder.productdisc.setText(String.valueOf(df.format(disc)) +" % OFF");
-            }
-
-            holder.productdisc.setText(String.valueOf(df.format(disc))+" OFF");
-            holder.productoldprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(product.getProductOldPrice())).toString());
-            holder.productnewprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(product.getProductNewPrice()).toString()));
-            String a = product.getProductImg();
-
-            Picasso.with(mcontext)
-                    .load("https://shopptree.com"+a.substring(1))
-                    //.placeholder(R.drawable.fruit)
-                    //.error(R.drawable.fruit)
-                    .into(holder.prodctImg);
-
-            holder.addToCart.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    try {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("CartID","001");
-                        jsonObject.put("PMID",product.getPmId());
-                        jsonObject.put("CartQty","1");
-
-
-                        String abc = new Addtocart(jsonObject).execute("https://shopptree.com/api/Api_carts/").get();
-                        if (abc.equals("Created")){
-                            TestModel cartModel = new TestModel(0,"","","",product.getPmId(),"","",product.getProductId(),"","","","",1,0,0,"0",0,"0",0,0,0,0,0);
-                            sharedPrefs.addCartItem(mcontext,cartModel);
-                            holder.Product_add_minus.setVisibility(View.VISIBLE);
-                            holder.addToCart.setVisibility(View.INVISIBLE);
-                            MainActivity.countproductoncart =MainActivity.countproductoncart+1;
-                            setBadgeCount(getBaseContext(), mCartMenuIcon, String.valueOf(MainActivity.countproductoncart));
-
-                            notifyDataSetChanged();
-                        }
-                        Log.i("InputS", abc.toString());
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            });
-            rowView.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(v.getContext(), ProductActivity.class).putExtra("productId",product.getPmId());
-                    v.getContext().startActivity(intent);
-                    // TODO Auto-generated method stub
-                }
-            });
-
-            return rowView;
-        }
-        private class Addtocart extends AsyncTask<String, Void, String> {
-            private JSONObject jsonObject;
-            Addtocart(JSONObject jsonObject){
-                this.jsonObject = jsonObject;
-            }
-            @Override
-            protected String doInBackground(String... urls) {
-                ArrayList<Product> productArrayList = new ArrayList<>();
-                productArrayList.clear();
-                String abc = JsonParser.postData(urls[0],jsonObject);
-
-                return abc;
-            }
-            // onPostExecute displays the results of the AsyncTask.
-            @Override
-            protected void onPostExecute(String  abc) {
-                Toast.makeText(mcontext, abc, Toast.LENGTH_SHORT).show();
-                //Product_List_Adapter product_adapter = new Product_List_Adapter(getBaseContext(),result);
-                //productgridview.setAdapter(product_adapter);
-                //productgridview.setExpanded(true);
-                //textView.setText(result.toString());
-
-            }
-
-        }
-
-        public void refresh(){
-            if (products.size()>0){
-                notifyDataSetChanged();
-            }
-
-        }
-    }
 
 
 }

@@ -80,6 +80,7 @@ public class ShopptreeApp extends Application {
          //cartid = System.currentTimeMillis() + "-" + UUID.randomUUID().toString();
         Log.i("JSON",cartid.toString());*/
     }
+    /*
     private class HttpAsyncTask extends AsyncTask<String, Void, ArrayList<CartModel>> {
         @Override
         protected ArrayList<CartModel> doInBackground(String... urls) {
@@ -129,6 +130,7 @@ public class ShopptreeApp extends Application {
 
         }
     }
+    */
     public boolean isConnected(){
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -149,7 +151,23 @@ public class ShopptreeApp extends Application {
             public void onResponse(Call<ArrayList<TestModel>> call, Response<ArrayList<TestModel>> response) {
                 Log.d("mat", String.valueOf(response.code()));
                 ArrayList<TestModel> testModels = response.body();
-                sharedPrefs.SaveCart(getBaseContext(), testModels);
+
+                MyDb myDb = new MyDb(getBaseContext());
+                myDb.open();
+                //myDb.deleteAllData();
+                for (TestModel a :testModels){
+                    int i=myDb.checkAvailable(a.getPMID());
+                    if (i==1){
+                        Log.d("ma0", String.valueOf(response.code()));
+                    }else {
+                        myDb.insertData(a.getProductID(),a.getPMID(),a.getProName(),a.getProPhotoMain(),String.valueOf(a.getCartRate()),a.getCartQty());
+                        Log.d("insert", String.valueOf(response.code()));
+
+                    }
+                }
+                myDb.close();
+
+                //sharedPrefs.SaveCart(getBaseContext(), testModels);
 
             }
 

@@ -174,6 +174,44 @@ public class JsonParser {
 
         return result;
     }
+    public static String delData(String uri) {
+    DataOutputStream printout = null;
+    String result = null;
+        try {
+            URL url = new URL(uri);
+            HttpURLConnection con = (HttpURLConnection) url
+                    .openConnection();
+            con.setReadTimeout(10000);
+            con.setConnectTimeout(25000);
+            con.setRequestProperty("API_KEY","MyApiKey");
+            con.setDoInput(true);
+            con.connect();
+        //BufferedOutputStream is = (BufferedOutputStream) con.getOutputStream();
+        //writer = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        //String data = null;
+        //String webPage = "";
+
+        int responseCode=con.getResponseCode();
+            Log.i("he", String.valueOf(con.getResponseCode()));
+
+        if (responseCode == HttpsURLConnection.HTTP_CREATED) {
+            //String line;
+            //BufferedReader br=new BufferedReader(new InputStreamReader(con.getInputStream()));
+            //while ((line=br.readLine()) != null) {
+            result = "success";
+
+        }
+        else {
+
+            result=String.valueOf(con.getResponseCode());
+
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+        return result;
+}
     private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException{
         StringBuilder result = new StringBuilder();
         boolean first = true;

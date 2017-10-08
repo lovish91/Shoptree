@@ -266,10 +266,7 @@ public class Product_List_Adapter extends BaseAdapter{
         @Override
         protected void onPostExecute(String  abc) {
              Toast.makeText(mcontext, abc, Toast.LENGTH_SHORT).show();
-            //Product_List_Adapter product_adapter = new Product_List_Adapter(getBaseContext(),result);
-            //productgridview.setAdapter(product_adapter);
-            //productgridview.setExpanded(true);
-            //textView.setText(result.toString());
+
 
         }
 

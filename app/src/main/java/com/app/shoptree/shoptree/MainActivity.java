@@ -35,6 +35,7 @@ import com.app.shoptree.shoptree.Utilities.ApiInterface;
 import com.app.shoptree.shoptree.Utilities.Helper;
 import com.app.shoptree.shoptree.Utilities.RetroFit;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
+import com.app.shoptree.shoptree.database.MyDb;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.CategoryModel;
 import com.daimajia.slider.library.Animations.DescriptionAnimation;
@@ -86,7 +87,6 @@ public class MainActivity extends BaseActivity
         View wizard = getLayoutInflater().inflate(R.layout.activity_main, null);
         dynamicContent.addView(wizard);
 
-        sharedPrefs = new SharedPrefs();
         //get the reference of RadioGroup.
         mDemoSlider = (SliderLayout)findViewById(R.id.slider);
         HashMap<String,String> url_maps = new HashMap<String, String>();
@@ -118,7 +118,11 @@ public class MainActivity extends BaseActivity
         mDemoSlider.setDuration(4000);
         mDemoSlider.addOnPageChangeListener(MainActivity.this);
 
-        countproductoncart =sharedPrefs.getCartCount(getBaseContext());
+        MyDb myDb = new MyDb(getBaseContext());
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
+
         RadioGroup rg=(RadioGroup)findViewById(R.id.radioGroup1);
         RadioButton rb=(RadioButton)findViewById(R.id.matching);
 
@@ -255,11 +259,14 @@ public class MainActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-        countproductoncart = sharedPrefs.getCartCount(getBaseContext());
+        MyDb myDb = new MyDb(getBaseContext());
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
         invalidateOptionsMenu();
-        //setBadgeCount(this, mCartMenuIcon, String.valueOf(countproductoncart));
         Log.d("lifecycle","onResume invoked");
     }
+
 
     private class HttpAsyncTask extends AsyncTask<String, Void, ArrayList<CategoryModel>> {
         ProgressDialog progressDialog;

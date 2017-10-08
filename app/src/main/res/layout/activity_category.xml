@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.app.shoptree.shoptree.CategoryActivity">
-<ScrollView
+
+<android.support.v4.widget.NestedScrollView
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="115dp">
@@ -15,8 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="#eff4f4"
-        android:padding="2dp"
-        >
+        android:padding="2dp">
         <com.app.shoptree.shoptree.Utilities.ExpandedGridView
             android:id="@+id/sub_cat_grid"
             android:layout_width="match_parent"
@@ -42,6 +42,14 @@
         android:layout_height="wrap_content"
         android:id="@+id/jsontext"/>
         -->
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/product_grid2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_marginTop="2dp">
+
+        </android.support.v7.widget.RecyclerView>
         <com.app.shoptree.shoptree.Utilities.ExpandedGridView
             android:id="@+id/product_grid"
             android:layout_width="match_parent"
@@ -56,7 +64,7 @@
 
 
     </LinearLayout>
-</ScrollView>
+</android.support.v4.widget.NestedScrollView>
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"

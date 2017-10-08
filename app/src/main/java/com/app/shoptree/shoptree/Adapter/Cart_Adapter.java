@@ -19,6 +19,8 @@ import com.app.shoptree.shoptree.CartActivity;
 import com.app.shoptree.shoptree.JsonParser;
 import com.app.shoptree.shoptree.ProductActivity;
 import com.app.shoptree.shoptree.R;
+import com.app.shoptree.shoptree.Utilities.ApiInterface;
+import com.app.shoptree.shoptree.Utilities.RetroFit;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.Product;
 import com.squareup.picasso.Picasso;
@@ -28,6 +30,10 @@ import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by lovishbajaj on 29/07/17.
@@ -43,7 +49,10 @@ public class Cart_Adapter extends BaseAdapter {
     private static final int TYPE_ITEM = 2;
     private double total = 0;
     double grandtotal = 0.0;
+    private String Status="";
     DecimalFormat df = new DecimalFormat("0.#");
+    private ApiInterface apiInterface;
+
 
 
 
@@ -129,11 +138,15 @@ public class Cart_Adapter extends BaseAdapter {
         for (int i=0; i<=products.size();i++){
            grandtotal = grandtotal + total;
         }
-        Log.i(TAG, String.valueOf(grandtotal));
+        //Log.i(TAG, String.valueOf(grandtotal));
         holder.remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            new delItemCart().execute("https://shopptree.com/api/Api_UpdateCart?CartID=001&PMID="+product.getPmId());
+
+                deleteItem("001",product.getPmId());
+                //Toast.makeText(mcontext, abc, Toast.LENGTH_SHORT).show();
+
+                //new delItemCart().execute("https://shopptree.com/api/Api_UpdateCart?CartID=001&PMID="+product.getPmId());
             }
         });
 
@@ -220,6 +233,34 @@ public class Cart_Adapter extends BaseAdapter {
             Toast.makeText(mcontext, abc, Toast.LENGTH_SHORT).show();
         }
     }
+
+
+    private String deleteItem (String cartID, String PMID){
+        String status = "";
+
+        apiInterface = RetroFit.getClient().create(ApiInterface.class);
+        apiInterface.deleteCartItem(cartID,PMID).enqueue(new Callback<String>() {
+
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+
+
+                    Log.d("delete", String.valueOf(response.body()));
+                    Toast.makeText(mcontext, "trouv" +String.valueOf(response.code()), Toast.LENGTH_SHORT).show();
+
+
+
+                Toast.makeText(mcontext, "trouv" +response.message(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+
+            }
+        });
+
+        return status;
+    }
     private class delItemCart extends AsyncTask<String, Void, String> {
         //ProgressDialog progressDialog = new ProgressDialog(mcontext);
         @Override
@@ -231,7 +272,7 @@ public class Cart_Adapter extends BaseAdapter {
         @Override
         protected String doInBackground(String... urls) {
 
-            String abc = JsonParser.getData(urls[0]);
+            String abc = JsonParser.delData(urls[0]);
 
             return abc;
         }

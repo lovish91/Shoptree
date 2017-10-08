@@ -11,6 +11,7 @@ import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -32,6 +33,9 @@ public interface ApiInterface {
 
     @GET("Api_Carts")
     Call<ArrayList<TestModel>> getCart(@Query("cartid") String cartId);
+
+    @GET("Api_UpdateCart")
+    Call<String> deleteCartItem (@Query("CartID") String CartID, @Query("PMID") String PMID);
 
 
 }

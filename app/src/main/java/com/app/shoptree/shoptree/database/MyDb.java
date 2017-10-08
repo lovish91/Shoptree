@@ -2,11 +2,14 @@ package com.app.shoptree.shoptree.database;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.Settings;
+import android.util.Log;
 
 /**
  * Created by lovishbajaj on 19/09/17.
@@ -34,7 +37,7 @@ public class MyDb {
         db.close();
     }
 
-    public long insertData(String productid,String pmid, String productname, String productimage, String productprice,String productquantity) {
+    public long insertData(String productid, String pmid, String productname, String productimage, String productprice, Integer productquantity) {
         ContentValues values = new ContentValues();
 
         values.put("productid", productid);
@@ -48,7 +51,7 @@ public class MyDb {
 
     }
 
-    public void updateQuantity(String pmid,String quantity){
+    public void updateQuantity(String pmid,Integer quantity){
         ContentValues cv = new ContentValues();
         cv.put("productquantity",quantity); //These Fields should be your String values of actual column names
         db.update("product_list", cv, "pmid="+pmid, null);
@@ -63,12 +66,22 @@ public class MyDb {
     public void deleteAllData() {
         // SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.delete("product_list", null, null);
-        db.close();
+        //db.close();
     }
-
+    public int getQuantity(String pmid){
+        int qty = 0;
+        String sql = "SELECT * FROM product_list WHERE pmid='"+pmid+"'";
+        Cursor cursor = db.rawQuery(sql,null);
+            if (cursor.moveToNext()){
+               qty = Integer.parseInt(cursor.getString(cursor.getColumnIndex("productquantity")));
+                Log.d("not",String.valueOf(qty));
+            }
+         //qty = cursor.getString(cursor.);
+        return qty;
+    }
     public int checkAvailable(String pmid){
         Cursor cursor = null;
-        String sql ="SELECT * FROM product_list WHERE productid='"+pmid+"'";
+        String sql ="SELECT * FROM product_list WHERE pmid='"+pmid+"'";
         cursor= db.rawQuery(sql,null);
 
 
@@ -85,7 +98,7 @@ public class MyDb {
 
     public boolean deleteproduct(String pmid)
     {
-        return db.delete("product_list", "productid" + "='" + pmid+"'", null) > 0;
+        return db.delete("product_list", "pmid" + "='" + pmid+"'", null) > 0;
     }
 
     public long countproduct(){
