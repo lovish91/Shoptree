@@ -10,7 +10,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.app.shoptree.shoptree.CartActivity"
-    android:background="@color/theme_primary_text_inverted">
+    android:background="@color/offWhite">
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

@@ -31,9 +31,9 @@ import java.util.ArrayList;
 public class MyAddressActivity extends AppCompatActivity {
     private ListView addresslist;
     private Toolbar myAddressToolbar;
-    private Button continueToCart;
+    private Button continueToCart,addAddress;
     private RelativeLayout myaddressfooter;
-    private String grandTotal;
+    private String grandTotal = " ";
     private TextView myaddressgrnadtotal;
     public static int chooseaddr = 0;
     public static String addressid = null;
@@ -52,15 +52,29 @@ public class MyAddressActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("");
         myAddressToolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         myAddressToolbar.setTitle("");
+        myAddressToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
         myaddressgrnadtotal = (TextView) findViewById(R.id.myaddressGrandTotal);
         continueToCart = (Button) findViewById(R.id.continueToCart);
         myaddressfooter = (RelativeLayout) findViewById(R.id.myaddressfooter);
+        addAddress = (Button) findViewById(R.id.addAddress);
         grandTotal = getIntent().getStringExtra("grandTotal");
-        if (grandTotal.equals(null)) {
-            myaddressfooter.setVisibility(View.INVISIBLE);
+        if (grandTotal.equals(" ")) {
+           myaddressfooter.setVisibility(View.INVISIBLE);
         }
         myaddressgrnadtotal.setText(getResources().getString(R.string.Rs) + grandTotal);
-        new MyAddress().execute("https://shopptree.com/api/api_useraddress/?userid=USER1001");
+        new MyAddress().execute("https://shopptree.com/api/api_useraddress/?userid=USER1025");
+        addAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MyAddressActivity.this, AddAdressesActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private class MyAddress extends AsyncTask<String, Void, ArrayList<Address>> {
@@ -106,6 +120,11 @@ public class MyAddressActivity extends AppCompatActivity {
         protected void onPostExecute(ArrayList<Address> result) {
             Log.i("JSON", result.toString());
 
+            if (result.size() ==0){
+                myaddressfooter.setVisibility(View.INVISIBLE);
+                addAddress.setVisibility(View.VISIBLE);
+
+            }
             //Toast.makeText(getBaseContext(), result.toString(), Toast.LENGTH_SHORT).show();
             final AddressAdapter addressAdapter = new AddressAdapter(getBaseContext(), R.layout.address_item_layout, result);
             addresslist.setAdapter(addressAdapter);

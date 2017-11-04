@@ -69,7 +69,7 @@ public class MainActivity extends BaseActivity
     private MenuItem search,cart;
     LinearLayout dynamicContent,bottonNavBar;
     LayerDrawable mCartMenuIcon;
-    public static long countproductoncart=0;
+    private static long countproductoncart=0;
     SharedPrefs sharedPrefs;
     private RecyclerView recyclerView;
     private CategoryRecycle categoryRecycle;
@@ -90,10 +90,12 @@ public class MainActivity extends BaseActivity
         //get the reference of RadioGroup.
         mDemoSlider = (SliderLayout)findViewById(R.id.slider);
         HashMap<String,String> url_maps = new HashMap<String, String>();
-        url_maps.put("Market", "http://greatist.com/sites/default/files/Healthy-Grocery-Shopping.jpg");
-        url_maps.put("Online", "http://goodearthmarket.coop/wp-content/themes/goodearth/images/grocery.jpg");
-        url_maps.put("Frocery", "http://www.theloop.ca/wp-content/uploads/2015/02/grocery-shopping.jpg");
-        url_maps.put("App", "http://cdn.modernfarmer.com/wp-content/uploads/2014/11/shoppinghero.jpg");
+        url_maps.put("Market", "https://shopptree.com/images/scroller/scroller1.jpg");
+        url_maps.put("Online", "https://shopptree.com/images/scroller/scroller2.jpg");
+        url_maps.put("Frocery", "https://shopptree.com/images/scroller/scroller3.jpg");
+        url_maps.put("f", "https://shopptree.com/images/scroller/scroller4.jpg");
+        url_maps.put("Apfp", "https://shopptree.com/images/scroller/scroller5.jpg");
+        url_maps.put("Apfsp", "https://shopptree.com/images/scroller/scroller6.jpg");
 
 
         for(String name : url_maps.keySet()){
@@ -102,7 +104,7 @@ public class MainActivity extends BaseActivity
             textSliderView
                     .description(name)
                     .image(url_maps.get(name))
-                    .setScaleType(BaseSliderView.ScaleType.Fit)
+                    .setScaleType(BaseSliderView.ScaleType.CenterCrop)
                     .setOnSliderClickListener(MainActivity.this);
 
             //add your extra information
@@ -112,10 +114,10 @@ public class MainActivity extends BaseActivity
 
             mDemoSlider.addSlider(textSliderView);
         }
-        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.Accordion);
+        mDemoSlider.setPresetTransformer(SliderLayout.Transformer.ZoomOutSlide);
         mDemoSlider.setPresetIndicator(SliderLayout.PresetIndicators.Center_Bottom);
         mDemoSlider.setCustomAnimation(new DescriptionAnimation());
-        mDemoSlider.setDuration(4000);
+        mDemoSlider.setDuration(3000);
         mDemoSlider.addOnPageChangeListener(MainActivity.this);
 
         MyDb myDb = new MyDb(getBaseContext());
@@ -217,11 +219,12 @@ public class MainActivity extends BaseActivity
             public void onResponse(Call<List<CategoryModel>> call, Response<List<CategoryModel>> response) {
                 //Log.d("match", String.valueOf(response.code()));
                 Log.d("match", response.body().toString());
+                if (response.isSuccessful ()){
                 categoryRecycle = new CategoryRecycle(getBaseContext(),response.body());
                 recyclerView.setAdapter(categoryRecycle);
-                for (CategoryModel categoryModel : response.body()){
-                    Log.d("match", categoryModel.getCategoryId());
-
+                for (CategoryModel categoryModel : response.body()) {
+                    Log.d ("match", categoryModel.getCategoryId ());
+                }
                 }
             }
 
@@ -267,7 +270,12 @@ public class MainActivity extends BaseActivity
         Log.d("lifecycle","onResume invoked");
     }
 
-
+    @Override
+    protected void onStop() {
+        // To prevent a memory leak on rotation, make sure to call stopAutoCycle() on the slider before activity or fragment is destroyed
+        mDemoSlider.stopAutoCycle();
+        super.onStop();
+    }
     private class HttpAsyncTask extends AsyncTask<String, Void, ArrayList<CategoryModel>> {
         ProgressDialog progressDialog;
         @Override

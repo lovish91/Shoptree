@@ -61,8 +61,8 @@ public class ShopptreeApp extends Application {
 
 
         if (cartid ==""){
-            SharedPreferences.Editor editor = getSharedPreferences(CARTID, MODE_PRIVATE).edit();
-            String tempcart = System.currentTimeMillis()+ UUID.randomUUID().toString();
+            SharedPreferences.Editor editor = getSharedPreferences(CARTID, Context.MODE_PRIVATE).edit();
+            String tempcart = String.valueOf (System.currentTimeMillis());
             editor.putString("cart_id",tempcart);
             editor.apply();
             //cartid = System.currentTimeMillis() + "-" + UUID.randomUUID().toString();
@@ -154,7 +154,7 @@ public class ShopptreeApp extends Application {
 
                 MyDb myDb = new MyDb(getBaseContext());
                 myDb.open();
-                //myDb.deleteAllData();
+                myDb.deleteAllData();
                 for (TestModel a :testModels){
                     int i=myDb.checkAvailable(a.getPMID());
                     if (i==1){

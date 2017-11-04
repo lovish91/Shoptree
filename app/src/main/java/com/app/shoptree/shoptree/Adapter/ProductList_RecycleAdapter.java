@@ -1,5 +1,6 @@
 package com.app.shoptree.shoptree.Adapter;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
@@ -17,21 +18,29 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.app.shoptree.shoptree.CartActivity;
+import com.app.shoptree.shoptree.CategoryActivity;
 import com.app.shoptree.shoptree.JsonParser;
+import com.app.shoptree.shoptree.MainActivity;
 import com.app.shoptree.shoptree.ProductActivity;
 import com.app.shoptree.shoptree.R;
 import com.app.shoptree.shoptree.database.MyDb;
 import com.app.shoptree.shoptree.model.Product;
+import com.app.shoptree.shoptree.model.ProductModel;
 import com.app.shoptree.shoptree.model.TestModel;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.SocketTimeoutException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.SocketHandler;
 
 /**
  * Created by lovishbajaj on 07/10/17.
@@ -39,12 +48,12 @@ import java.util.concurrent.ExecutionException;
 
 public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList_RecycleAdapter.ViewHolder> {
     private Context mcontext;
-    private ArrayList<Product> products;
+    private List<ProductModel> products;
     private int count = 0;
 
-    public ProductList_RecycleAdapter(Context mcontext,ArrayList<Product> products) {
+    public ProductList_RecycleAdapter(Context mcontext,List<ProductModel> products) {
         this.products = products;
-        this.mcontext=mcontext;
+        this.mcontext = mcontext;
 //        imageLoader = AppController.getInstance().getImageLoader();
 
     }
@@ -59,21 +68,31 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
 
     @Override
     public void onBindViewHolder(final ProductList_RecycleAdapter.ViewHolder holder, final int position) {
+        final ProductModel productModel = products.get (position);
+
+        holder.itemView.setOnClickListener (new View.OnClickListener () {
+            @Override
+            public void onClick (View view) {
+                Intent intent = new Intent(mcontext, ProductActivity.class).putExtra("productId",productModel.getPMID ());
+                mcontext.startActivity(intent);
+            }
+        });
 
         holder.productoldprice.setPaintFlags(holder.productoldprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         final MyDb myDb = new MyDb(mcontext);
         myDb.open();
-        Log.d("not", String.valueOf(myDb.getQuantity(products.get(position).getPmId())));
-        count = myDb.getQuantity(products.get(position).getPmId());
-        int i=myDb.checkAvailable(products.get(position).getPmId());
+        //Log.d("not", String.valueOf(myDb.getQuantity(productModel.getPMID ())));
+        int i=myDb.checkAvailable(productModel.getPMID ());
         if (i==0) {
             holder.Product_add_minus.setVisibility(View.GONE);
             holder.addToCart.setVisibility(View.VISIBLE);
-            Log.d("not avai",products.get(position).getPmId());
+            holder.Productmain.setBackgroundResource(R.color.my_awesome_color);
+            Log.d("not avai",productModel.getPMID ());
         }else {
+            count = myDb.getQuantity(productModel.getPMID ());
             holder.Product_add_minus.setVisibility(View.VISIBLE);
             holder.addToCart.setVisibility(View.GONE);
-            Log.d(" avai",products.get(position).getPmId());
+            Log.d(" avai",productModel.getPMID ());
             holder.Productmain.setBackgroundResource(R.drawable.productborder);
         }
         myDb.close();
@@ -83,23 +102,27 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
             public void onClick(View view) {
                 try {
                     myDb.open();
-                    int newcount =myDb.getQuantity(products.get(position).getPmId());
+                    int newcount =myDb.getQuantity(productModel.getPMID ());
                     newcount = newcount + 1;
                     Log.i("button",String.valueOf(count));
                     JSONObject jsonParam = new JSONObject();
                     jsonParam.put("CartID","001");
-                    jsonParam.put("PMID",Integer.valueOf(products.get(position).getPmId()));
+                    jsonParam.put("PMID",Integer.valueOf(productModel.getPMID ()));
                     jsonParam.put("CartQty",newcount);
-                    jsonParam.put("CartAmount",products.get(position).getProductNewPrice() * Double.valueOf(newcount));
-                    //new Product_List_Adapter.AddtocartTask(jsonParam).execute("https://shopptree.com/api/Api_Updatecart");
+                    jsonParam.put("CartAmount",productModel.getProSellerPrice () * Double.valueOf(newcount));
+                    String status = new AddtocartTask(jsonParam).execute("https://shopptree.com/api/Api_Updatecart").get ();
                     //product.setProductQuantity(String.valueOf(count));
-                    myDb.updateQuantity(products.get(position).getPmId(),newcount);
+                    myDb.updateQuantity(productModel.getPMID (),newcount);
                     holder.Product_quantity.setText(String.valueOf(newcount));
                     myDb.close();
                     //sharedPrefs.SaveCart(mcontext,cartModels);
-                    //notifyDataSetChanged();
+                    notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace ();
+                } catch (ExecutionException e) {
+                    e.printStackTrace ();
                 }
             }
         });
@@ -108,30 +131,38 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
             public void onClick(View view) {
                 try {
                     myDb.open();
-                    int newcount = myDb.getQuantity(products.get(position).getPmId());
-                    if (newcount ==1){
-                        String status = new delItemCart().execute("https://shopptree.com/api/Api_UpdateCart?CartID=001&PMID="+products.get(position).getPmId()).get();
-                        Toast.makeText(mcontext, status, Toast.LENGTH_SHORT).show();
-                        holder.Product_add_minus.setVisibility(View.GONE);
-                        holder.addToCart.setVisibility(View.VISIBLE);
-                        holder.Productmain.setBackgroundResource(R.color.my_awesome_color);
-                        myDb.deleteproduct(products.get(position).getPmId());
-                        myDb.close();
+                    int newcount = myDb.getQuantity(productModel.getPMID ());
+                    if (newcount == 1 ){
+                        String status = new delItemCart().execute("https://shopptree.com/api/Api_UpdateCart?CartID=001&PMID="+productModel.getPMID ()).get();
+                        if (status.equals ("202")){
+                            Toast.makeText(mcontext, status, Toast.LENGTH_SHORT).show();
+                            holder.Product_add_minus.setVisibility(View.GONE);
+                            holder.addToCart.setVisibility(View.VISIBLE);
+                            holder.Productmain.setBackgroundResource(R.color.my_awesome_color);
+                            myDb.deleteproduct(productModel.getPMID ());
+                            myDb.close();
+                            CategoryActivity.instance.update ();
+                            notifyDataSetChanged();
+                        }
 
-                        //sharedPrefs.SaveCart(mcontext, cartModels);
-                        //notifyDataSetChanged();
                     }else {
-                        newcount = newcount-1;
+                        newcount = newcount - 1;
                         JSONObject jsonParam = new JSONObject();
                         jsonParam.put("CartID","001");
-                        jsonParam.put("PMID",Integer.valueOf(products.get(position).getPmId()));
-                        jsonParam.put("CartQty",count);
-                        jsonParam.put("CartAmount",products.get(position).getProductNewPrice() * Double.valueOf(newcount));
-                        //new Product_List_Adapter.AddtocartTask(jsonParam).execute("https://shopptree.com/api/Api_Updatecart");
-                        //product.setProductQuantity(String.valueOf(count));
-                        myDb.updateQuantity(products.get(position).getPmId(),newcount);
-                        holder.Product_quantity.setText(String.valueOf(newcount));
-                        myDb.close();
+                        jsonParam.put("PMID",Integer.valueOf(productModel.getPMID ()));
+                        jsonParam.put("CartQty",newcount);
+                        jsonParam.put("CartAmount",productModel.getProSellerPrice () * Double.valueOf(newcount));
+                        Log.i("button",jsonParam.toString ());
+                        String status = new AddtocartTask(jsonParam).execute("https://shopptree.com/api/Api_Updatecart").get ();
+                        Log.i("button",status);
+                        if(status.equals ("Accepted")){
+                            myDb.updateQuantity(productModel.getPMID (),newcount);
+                            holder.Product_quantity.setText(String.valueOf(newcount));
+                            myDb.close();
+                            CategoryActivity.instance.update ();
+                            //notifyDataSetChanged ();
+                        }
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -145,9 +176,9 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
         });
 
 
-        holder.prodctName.setText(products.get(position).getProductName());
-        holder.productunit.setText(products.get(position).getUnit());
-        double disc = Math.round(100 - ((double)products.get(position).getProductNewPrice())*100/(double)products.get(position).getProductOldPrice());
+        holder.prodctName.setText(productModel.getProName ());
+        holder.productunit.setText(productModel.getUnitType ());
+        double disc = Math.round(100 - ((double)productModel.getProSellerPrice ())*100/(double)productModel.getProMrp ());
         DecimalFormat df = new DecimalFormat("0.#");
         if (disc==0.0){
             holder.productdisc.setVisibility(View.INVISIBLE);
@@ -157,16 +188,22 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
         }
 
         holder.productdisc.setText(String.valueOf(df.format(disc))+" OFF");
-        holder.productoldprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(products.get(position).getProductOldPrice())).toString());
-        holder.productnewprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(products.get(position).getProductNewPrice()).toString()));
-        String a = products.get(position).getProductImg();
+        holder.productoldprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(productModel.getProSellerPrice ())).toString());
+        holder.productnewprice.setText(mcontext.getResources().getString(R.string.Rs) + (df.format(productModel.getProSellerPrice ()).toString()));
+        String a = productModel.getProPhotoMain ();
 
-        Picasso.with(mcontext)
+        Glide.with (mcontext).load ("https://shopptree.com"+a.substring(1))
+                .thumbnail(0.5f)
+                .crossFade()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(holder.prodctImg);
+        /*Picasso.with(mcontext)
                 .load("https://shopptree.com"+a.substring(1))
+                .fit ()
                 //.placeholder(R.drawable.fruit)
                 //.error(R.drawable.fruit)
                 .into(holder.prodctImg);
-
+*/
         holder.addToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -174,18 +211,21 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
                 try {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("CartID","001");
-                    jsonObject.put("PMID",products.get(position).getPmId());
+                    jsonObject.put("PMID",productModel.getPMID ());
                     jsonObject.put("CartQty","1");
 
 
                     String abc = new AddtocartTask(jsonObject).execute("https://shopptree.com/api/Api_carts/").get();
                     if (abc.equals("Created")){
                         myDb.open();
-                        myDb.insertData(products.get(position).getProductId(),products.get(position).getPmId(),products.get(position).getProductName(),products.get(position).getProductImg(),String.valueOf(products.get(position).getProductNewPrice()),1);
-                        //sharedPrefs.addCartItem(mcontext,cartModel);
+                        myDb.insertData(productModel.getProductID (),productModel.getPMID (),productModel.getProName (),productModel.getProPhotoMain (),String.valueOf(productModel.getProSellerPrice ()),1);
                         holder.Product_add_minus.setVisibility(View.VISIBLE);
                         holder.addToCart.setVisibility(View.INVISIBLE);
-                        notifyDataSetChanged();
+                        holder.Productmain.setBackgroundResource(R.drawable.productborder);
+                        holder.Product_quantity.setText ("1");
+                        myDb.close ();
+                        CategoryActivity.instance.update ();
+                        //notifyDataSetChanged();
                     }
                    // Log.i("InputS", abc.toString());
 
@@ -253,10 +293,17 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
         AddtocartTask(JSONObject jsonObject){
             this.jsonObject = jsonObject;
         }
+       ProgressDialog progressDialog = new ProgressDialog(CategoryActivity.instance);
+
+
+        @Override
+        protected void onPreExecute() {
+            // Log.i(TAG, "onPreExecute");
+            progressDialog.setMessage ("Hold on");
+            progressDialog.show();
+        }
         @Override
         protected String doInBackground(String... urls) {
-            ArrayList<Product> productArrayList = new ArrayList<>();
-            productArrayList.clear();
             String abc = JsonParser.postData(urls[0],jsonObject);
 
             return abc;
@@ -265,33 +312,28 @@ public class ProductList_RecycleAdapter extends RecyclerView.Adapter<ProductList
         @Override
         protected void onPostExecute(String  abc) {
             Toast.makeText(mcontext, abc, Toast.LENGTH_SHORT).show();
-
-
+            progressDialog.dismiss ();
         }
 
     }
     private class delItemCart extends AsyncTask<String, Void, String> {
-        //ProgressDialog progressDialog = new ProgressDialog(mcontext);
+        ProgressDialog progressDialog = new ProgressDialog(CategoryActivity.instance);
+
         @Override
         protected void onPreExecute() {
            // Log.i(TAG, "onPreExecute");
-            //progressDialog.show();
+           progressDialog.show();
         }
-
         @Override
         protected String doInBackground(String... urls) {
-
             String abc = JsonParser.delData(urls[0]);
-
             return abc;
         }
-
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String  abc) {
             //String a = abc.toString();
-
-            //progressDialog.dismiss();
+            progressDialog.dismiss();
         }
     }
 

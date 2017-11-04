@@ -19,6 +19,7 @@ public class BaseActivity extends AppCompatActivity {
     private UserInfo userInfo = new UserInfo();
     public static String USERID ="Userid";
     private String userid ="";
+    private SharedPrefs sharedPrefs;
 
 
 
@@ -28,9 +29,10 @@ public class BaseActivity extends AppCompatActivity {
         setContentView(R.layout.activity_base);
         radioGroup1=(RadioGroup)findViewById(R.id.radioGroup1);
         deals = (RadioButton)findViewById(R.id.Cart);
-        SharedPreferences prfs = getSharedPreferences(USERID, Context.MODE_PRIVATE);
-        userid = prfs.getString("cart_id", "");
-        Log.d("fai", userid.toString()+"nmvm");
+        sharedPrefs = new SharedPrefs ();
+        SharedPreferences prfs = getSharedPreferences(USERID, MODE_PRIVATE);
+        userid = prfs.getString("Userid","null");
+        Log.d("fai", userid.toString() + " "+sharedPrefs.getTempCartID (getBaseContext ()));
         radioGroup1.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
         {
             @Override
@@ -45,10 +47,10 @@ public class BaseActivity extends AppCompatActivity {
                         in=new Intent(getBaseContext(), MainActivity.class);
                         startActivity(in);
                         overridePendingTransition(0, 0);
+
                         break;
                     case R.id.watchList:
                         Log.i("matching", "matching inside1 watchlistAdapter" + checkedId);
-
                         in = new Intent(getBaseContext(), OffersActivity.class);
                         startActivity(in);
                         overridePendingTransition(0, 0);
@@ -56,15 +58,14 @@ public class BaseActivity extends AppCompatActivity {
                         break;
                     case R.id.search:
                         Log.i("matching", "matching inside1 rate" + checkedId);
-
                         in = new Intent(getBaseContext(),SearchActivity.class);
                         startActivity(in);
                         overridePendingTransition(0, 0);
                         break;
                     case R.id.account:
                         Log.i("matching", "matching inside1 listing" + checkedId);
-
-                        if (userid == " "){
+                        UserInfo userInfo = sharedPrefs.getUserInfo (getBaseContext ());
+                        if (userInfo == null){
                             in = new Intent(getBaseContext(),LoginActivity.class);
                             startActivity(in);
                             overridePendingTransition(0, 0);
@@ -73,6 +74,7 @@ public class BaseActivity extends AppCompatActivity {
                             in = new Intent(getBaseContext(), AccountActivity.class);
                             startActivity(in);
                             overridePendingTransition(0, 0);
+
                         }
                         break;
                     case R.id.Cart:
@@ -80,6 +82,7 @@ public class BaseActivity extends AppCompatActivity {
                         in = new Intent(getBaseContext(), CartActivity.class);
                         startActivity(in);
                         overridePendingTransition(0, 0);
+
                         break;
                     default:
                         break;

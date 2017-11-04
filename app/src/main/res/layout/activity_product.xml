@@ -92,6 +92,46 @@
                     android:background="@drawable/discountborder" />
 
                 </RelativeLayout>
+            <LinearLayout
+                android:id="@+id/Productaddminus"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:layout_below="@+id/divider"
+                android:visibility="invisible"
+                android:padding="0dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/addminusbutton">
+                <ImageButton
+                    android:layout_weight="1"
+                    android:id="@+id/Productmns"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/addminusbutton_selector"
+                    android:src="@drawable/ic_remove_white"/>
+                <TextView
+                    android:layout_weight="1"
+                    android:id="@+id/Productquty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/my_awesome_color"
+                    android:layout_centerInParent="true"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:paddingLeft="5dp"
+                    android:paddingRight="5dp"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+                <ImageButton
+                    android:layout_weight="1"
+                    android:id="@+id/Productpls"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentRight="true"
+                    android:background="@drawable/addminusbutton_selector"
+                    android:src="@drawable/ic_add_white"/>
+            </LinearLayout>
             <Button
                 android:id="@+id/addtocart"
                 android:layout_width="match_parent"
@@ -103,6 +143,7 @@
                 android:textSize="20dp"
                 android:text="ADD TO CART"
                 android:textColor="@color/my_awesome_color"
+                android:layout_marginBottom="15dp"
                 />
         </LinearLayout>
         </ScrollView>

@@ -1,7 +1,9 @@
 package com.app.shoptree.shoptree;
 
 import android.util.Log;
+import android.widget.Toast;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -14,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -22,6 +25,8 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import retrofit2.http.POST;
+
+import static com.facebook.FacebookSdk.getApplicationContext;
 
 
 public class JsonParser {
@@ -48,7 +53,13 @@ public class JsonParser {
                 webPage += data + "\n";
             }
             result = webPage;
-        } catch (UnsupportedEncodingException e) {
+        } catch (SocketTimeoutException e){
+            Toast.makeText(getApplicationContext(), "Socket Timeout", Toast.LENGTH_LONG).show();
+        }
+        catch (ConnectTimeoutException bug) {
+            Toast.makeText(getApplicationContext(), "Connection Timeout", Toast.LENGTH_LONG).show();
+        }
+        catch (UnsupportedEncodingException e) {
             Log.e("Fail 1", e.toString());
         } catch (MalformedURLException e) {
             Log.e("Fail 2", e.toString());
@@ -132,6 +143,10 @@ public class JsonParser {
 
              result=con.getResponseMessage();
 
+        } catch (SocketTimeoutException e){
+            Toast.makeText(getApplicationContext(), "Socket Timeout", Toast.LENGTH_LONG).show();
+        } catch (ConnectTimeoutException bug) {
+            Toast.makeText(getApplicationContext(), "Connection Timeout", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -206,7 +221,12 @@ public class JsonParser {
             result=String.valueOf(con.getResponseCode());
 
         }
-    } catch (Exception e) {
+    } catch (SocketTimeoutException e){
+            Toast.makeText(getApplicationContext(), "Socket Timeout", Toast.LENGTH_LONG).show();
+        } catch (ConnectTimeoutException bug) {
+            Toast.makeText(getApplicationContext(), "Connection Timeout", Toast.LENGTH_LONG).show();
+        }
+        catch (Exception e) {
         e.printStackTrace();
     }
 

@@ -1,5 +1,6 @@
 package com.app.shoptree.shoptree;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.drawable.LayerDrawable;
@@ -7,16 +8,20 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.app.shoptree.shoptree.Adapter.Product_List_Adapter;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
+import com.app.shoptree.shoptree.database.MyDb;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.Product;
 import com.squareup.picasso.Picasso;
@@ -26,17 +31,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import static com.app.shoptree.shoptree.MainActivity.setBadgeCount;
 
 public class ProductActivity extends AppCompatActivity {
     private Toolbar toolbar;
-    private TextView productTit,productUnit,proOldprice,proNewprice,productdesc,productdisc;
+    private TextView productTit,productUnit,proOldprice,proNewprice,productdesc,productdisc,productqty;
     private Button addtocart;
     private ImageView product_img;
     LayerDrawable mCartMenuIcon;
     private MenuItem search,cart;
     SharedPrefs sharedPrefs;
+    private long countproductoncart = 0;
+    private  MyDb myDb;
+    private LinearLayout addminLayout;
+    private ImageButton productAdd,productMns;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +72,16 @@ public class ProductActivity extends AppCompatActivity {
         addtocart = (Button) findViewById(R.id.addtocart);
         product_img = (ImageView) findViewById(R.id.product_imag);
 
-        sharedPrefs = new SharedPrefs();
+        addminLayout = (LinearLayout) findViewById (R.id.Productaddminus);
+        productMns = (ImageButton) findViewById (R.id.Productmns);
+        productAdd = (ImageButton) findViewById (R.id.Productpls);
+        productqty = (TextView) findViewById (R.id.Productquty);
 
+        sharedPrefs = new SharedPrefs();
+        myDb= new MyDb(getBaseContext());
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
         String x = getIntent().getStringExtra("productId");
 
         new cHttpAsyncTask().execute("https://shopptree.com/api/Api_productdetails/"+x);
@@ -118,6 +136,15 @@ public class ProductActivity extends AppCompatActivity {
             }else {
                 productdisc.setText(String.valueOf(disc) +" % OFF");
             }
+            myDb.open ();
+            int i = myDb.checkAvailable (result.getPmId ());
+            if (i == 1){
+                addminLayout.setVisibility (View.VISIBLE);
+                addtocart.setVisibility (View.GONE);
+                int qty = myDb.getQuantity (result.getPmId ());
+                productqty.setText (String.valueOf (qty));
+            }
+            myDb.close ();
 
             String a = result.getProductImg();
 
@@ -126,10 +153,102 @@ public class ProductActivity extends AppCompatActivity {
                     .centerInside()
                     .fit()
                     .into(product_img);
+            productAdd.setOnClickListener (new View.OnClickListener () {
+                @Override
+                public void onClick (View view) {
+                    try {
+                    myDb.open ();
+                    int count = myDb.getQuantity (result.getPmId ());
+                    count = count + 1;
+
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("CartID","001");
+                    jsonParam.put("PMID",Integer.valueOf(result.getPmId ()));
+                    jsonParam.put("CartQty",count);
+                    jsonParam.put("CartAmount",result.getProductNewPrice() * Double.valueOf(count));
+                        String status = new AddtocartTask(jsonParam).execute("https://shopptree.com/api/Api_Updatecart/").get();
+                        if(status.equals ("Accepted")){
+                            myDb.updateQuantity (result.getPmId (),count);
+                            productqty.setText (String.valueOf (count));
+                            myDb.close ();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace ();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace ();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace ();
+                    }
+                }
+            });
+            productMns.setOnClickListener (new View.OnClickListener () {
+                @Override
+                public void onClick (View view) {
+                    try {
+                        myDb.open ();
+                        int count = myDb.getQuantity (result.getPmId ());
+                        if (count == 1) {
+                            String status = new delItemCart ().execute("https://shopptree.com/api/Api_UpdateCart?CartID=001&PMID="+result.getPmId ()).get();
+                            if (status.equals ("202")){
+                                myDb.deleteproduct(result.getPmId());
+                                addtocart.setVisibility (View.VISIBLE);
+                                addminLayout.setVisibility (View.GONE);
+                                myDb.close ();
+
+                            }
+                        } else {
+
+                            count = count - 1;
+                            JSONObject jsonParam = new JSONObject ();
+                            jsonParam.put ("CartID", "001");
+                            jsonParam.put ("PMID", Integer.valueOf (result.getPmId ()));
+                            jsonParam.put ("CartQty", count);
+                            jsonParam.put ("CartAmount", result.getProductNewPrice () * Double.valueOf (count));
+                            String status = new AddtocartTask (jsonParam).execute ("https://shopptree.com/api/Api_Updatecart/").get ();
+                            if (status.equals ("Accepted")) {
+                                myDb.updateQuantity (result.getPmId (), count);
+                                productqty.setText (String.valueOf (count));
+                                myDb.close ();
+                            }
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace ();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace ();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace ();
+                    }
+                }
+            });
+
             addtocart.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    new AddtocartTask().execute("https://shopptree.com/api/Api_carts/?id="+result.getPmId()+"&qty=1&cartid=001");
+                    myDb.open ();
+                    try {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("CartID","001");
+                        jsonObject.put("PMID",result.getPmId());
+                        jsonObject.put("CartQty","1");
+                        String status =  new AddtocartTask(jsonObject).execute("https://shopptree.com/api/Api_carts/").get();
+                    if(status .equals ("Created")){
+                        Toast.makeText(getBaseContext(), result.getProductName() + "is added to cart", Toast.LENGTH_SHORT).show();
+                        myDb.insertData(result.getProductId (),result.getPmId (),result.getProductName (),result.getProductImg (),String.valueOf(result.getProductNewPrice ()),1);
+                        productqty.setText ("1");
+                        addtocart.setVisibility (View.GONE);
+                        addminLayout.setVisibility (View.VISIBLE);
+                        myDb.close ();
+                        setBadgeCount(ProductActivity.this, mCartMenuIcon, String.valueOf(countproductoncart +1));
+
+                    }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace ();
+                    }
                 }
             });
 
@@ -148,11 +267,9 @@ public class ProductActivity extends AppCompatActivity {
         //searchView.setMenuItem(search);
         cart =(MenuItem) menu.findItem(R.id.action_cart);
         //BitmapDrawable iconBitmap = (BitmapDrawable) cart.getIcon();
-        ArrayList<CartModel> cartModels = new ArrayList<>();
-        MainActivity.countproductoncart = sharedPrefs.getCartCount(getBaseContext());
 
 
-        setBadgeCount(this, mCartMenuIcon, String.valueOf(MainActivity.countproductoncart));
+        setBadgeCount(this, mCartMenuIcon, String.valueOf(countproductoncart));
         cart.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -165,12 +282,15 @@ public class ProductActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
     private class AddtocartTask extends AsyncTask<String, Void, String> {
+        private JSONObject jsonObject;
+        AddtocartTask(JSONObject jsonObject){
+            this.jsonObject = jsonObject;
+        }
         @Override
         protected String doInBackground(String... urls) {
             ArrayList<Product> productArrayList = new ArrayList<>();
             productArrayList.clear();
-            String abc = JsonParser.sendData(urls[0]);
-
+            String abc = JsonParser.postData(urls[0],jsonObject);
 
 
             return abc;
@@ -179,10 +299,27 @@ public class ProductActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String  result) {
             Toast.makeText(getBaseContext(), result, Toast.LENGTH_SHORT).show();
-            //Product_List_Adapter product_adapter = new Product_List_Adapter(getBaseContext(),result);
-            //productgridview.setAdapter(product_adapter);
-            //productgridview.setExpanded(true);
-            //textView.setText(result.toString());
+
+        }
+    }
+    private class delItemCart extends AsyncTask<String, Void, String> {
+        @Override
+        protected void onPreExecute() {
+            Log.i("TAG", "onPreExecute");
+        }
+        @Override
+        protected String doInBackground(String... urls) {
+
+            String abc = JsonParser.delData(urls[0]);
+
+            return abc;
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String  abc) {
+            //String a = abc.toString();
+            Toast.makeText(getBaseContext (), abc, Toast.LENGTH_SHORT).show();
+
         }
     }
 }

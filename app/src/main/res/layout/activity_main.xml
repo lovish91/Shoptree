@@ -86,7 +86,7 @@
         android:layout_below="@+id/cat_grid"
         android:background="@color/theme_icons"
         android:nestedScrollingEnabled="false"
-        android:paddingBottom="70dp">
+        android:paddingBottom="?attr/actionBarSize">
 
     </android.support.v7.widget.RecyclerView>
 

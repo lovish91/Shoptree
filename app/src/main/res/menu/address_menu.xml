@@ -7,10 +7,5 @@
         android:orderInCategory="100"
         android:title="Edit"
         app:showAsAction="always" />
-    <item
-        android:id="@+id/deleteAddress"
-        android:icon="@drawable/ic_action_action_search"
-        android:orderInCategory="100"
-        android:title="Delete"
-        app:showAsAction="always" />
+
 </menu>

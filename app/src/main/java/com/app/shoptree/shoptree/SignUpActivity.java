@@ -31,11 +31,11 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText password;
     private EditText phoneNo;
     private Button Signup;
-    private String firstname;
-    private String lastname;
-    private String phoneno;
-    private String email;
-    private String pass;
+    private String Firstname;
+    private String Lastname;
+    private String Phoneno;
+    private String Email;
+    private String Pass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,29 +54,29 @@ public class SignUpActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View arg0) {
-                firstname = firstName.getText().toString();
-                lastname = lastName.getText().toString();
-                phoneno = phoneNo.getText().toString();
-                email = emailId.getText().toString();
-                pass = password.getText().toString();
+                Firstname = firstName.getText().toString();
+                Lastname = lastName.getText().toString();
+                Phoneno = phoneNo.getText().toString();
+                Email = emailId.getText().toString();
+                Pass = password.getText().toString();
 
-                if (isNotNull(firstname)){
+                if (isNotNull(Firstname)){
                     firstName.setError("Empty");
                 }
                 else
-                if (isNotNull(lastname)){
+                if (isNotNull(Lastname)){
                     lastName.setError("Empty");
                 }
                 else
-                if (isValidMobile(phoneno)){
+                if (isValidMobile(Phoneno)){
                     phoneNo.setError("Error");
                 }
                 else
-                if (!isValidEmail(email)) {
+                if (!isValidEmail(Email)) {
                     emailId.setError("Invalid Email");
                 }
                 else
-                if (!isValidPassword(pass)) {
+                if (!isValidPassword(Pass)) {
                     password.setError("Invalid Password");
                 }
 
@@ -135,11 +135,11 @@ public class SignUpActivity extends AppCompatActivity {
                 conn.setDoInput(true);
 
                 JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("UserFirstName",firstname);
-                    jsonParam.put("UserLastName",lastname);
-                    jsonParam.put("UserEmailId",email);
-                    jsonParam.put("UserPhone",phoneno);
-                    jsonParam.put("UserPasswordHash",pass);
+                    jsonParam.put("UserFirstName",Firstname);
+                    jsonParam.put("UserLastName", Lastname);
+                    jsonParam.put("UserEmailId",Email);
+                    jsonParam.put("UserPhone",Phoneno);
+                    jsonParam.put("UserPasswordHash",Pass);
 
                 Log.i("JSON","");
                 DataOutputStream os = new DataOutputStream(conn.getOutputStream());

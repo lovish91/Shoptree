@@ -1,5 +1,6 @@
 package com.app.shoptree.shoptree;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -21,6 +22,7 @@ import com.app.shoptree.shoptree.Utilities.ApiInterface;
 import com.app.shoptree.shoptree.Utilities.RetroFit;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
 import com.app.shoptree.shoptree.model.LoginModel;
+import com.app.shoptree.shoptree.model.UserInfo;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -30,7 +32,9 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.gson.JsonObject;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +43,7 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -50,6 +55,8 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -76,6 +83,8 @@ public class LoginActivity extends AppCompatActivity {
         emaillogin = (Button) findViewById(R.id.btn_login);
         email = (EditText) findViewById(R.id.input_email);
         password = (EditText) findViewById(R.id.input_password);
+        sharedPrefs =  new SharedPrefs();
+
         emaillogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,8 +97,8 @@ public class LoginActivity extends AppCompatActivity {
                 if (!isValidPassword(pass)) {
                     password.setError("Invalid Password");
                 }
-                //Login(emailID,pass);
-                new LoginManual().execute("https://shopptree.com/api/Api_SignIn");
+                Login(emailID,pass);
+                //new LoginManual().execute("https://shopptree.com/api/Api_SignIn");
 
             }
         });
@@ -150,43 +159,41 @@ public class LoginActivity extends AppCompatActivity {
     public void Login(String emailID,String password) {
         apiInterface = RetroFit.getClient().create(ApiInterface.class);
         //LoginModel loginModel = new LoginModel(emailID,password);
-        try {
-            JSONObject paramObject = new JSONObject();
-            paramObject.put("UserEmailID", emailID);
-            paramObject.put("UserPasswordHash",password);
-            Log.d("success", paramObject.toString());
+        JsonObject paramObject = new JsonObject ();
+        paramObject.addProperty ("UserEmailID", emailID);
+        paramObject.addProperty ("UserPasswordHash",password);
+        Log.d("success", paramObject.toString());
 
-          Call <String> call = apiInterface.UserLogin(paramObject);
-            call.enqueue(new Callback<String>() {
-                @Override
-                public void onResponse(Call<String> call, Response<String> response) {
-                    Log.d("success", String.valueOf(response.code()));
-                    Log.d("success", response.body().toString());
-                    if(response.body().toString().equals("404")){
-                        //Log.d("fai", result.toString());
-                        Toast.makeText(getBaseContext(),"Email or Password Incorrect" ,Toast.LENGTH_LONG).show();
-                    }else {
-                        sharedPrefs =  new SharedPrefs();
-                        SharedPreferences.Editor editor = getSharedPreferences(USERID, MODE_PRIVATE).edit();
-                        editor.putString("Userid",response.body().toString().replace("\"", "").toString());
-                        editor.apply();
+        Call <UserInfo> call = apiInterface.UserLogin(paramObject);
+        call.enqueue(new Callback<UserInfo>() {
 
-                        //Toast.makeText(getBaseContext(),result.replace("\"", "").toString(), Toast.LENGTH_LONG).show();
+            @Override
+            public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
+                Log.d("succ", String.valueOf(response.code()));
 
 
-                    }
+                if(response.isSuccessful ()){
+                    //Log.d("fai", result.toString());
+                    UserInfo userInfo = response.body ();
+                    sharedPrefs.setUserInfo (userInfo,getBaseContext ());
+                    Log.d("userinfo", userInfo.getUserID ());
 
-                }
+                    updateCart ("001",userInfo.getUserID ());
 
-                @Override
-                public void onFailure(Call<String> call, Throwable t) {
+                }else {
+
+                    Toast.makeText(getBaseContext(),"Email or Password Incorrect" ,Toast.LENGTH_LONG).show();
 
                 }
-            });
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            }
+
+            @Override
+            public void onFailure(Call<UserInfo> call, Throwable t) {
+
+            }
+        });
+
     }
         // validating email id
     private boolean isValidEmail(String email) {
@@ -227,6 +234,31 @@ public class LoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
+
+
+    private void updateCart(String cartId,String userId){
+        apiInterface = RetroFit.getClient().create(ApiInterface.class);
+        String a = sharedPrefs.getTempCartID (getBaseContext ());
+        apiInterface.updateCart (cartId,userId).enqueue (new Callback<ResponseBody> () {
+                    @Override
+                    public void onResponse (Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Log.d("succes", String.valueOf (response.code ()));
+
+                        if (response.isSuccessful ()) {
+                            Intent intent = new Intent(LoginActivity.this ,MainActivity.class);
+                            startActivity(intent);
+                            finish ();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure (Call<ResponseBody> call, Throwable t) {
+
+                    }
+                }
+        );
+
+    }
     private class LoginManual extends AsyncTask<String, Void, String> {
         String status = null;
 
@@ -248,7 +280,7 @@ public class LoginActivity extends AppCompatActivity {
                 jsonParam.put("UserEmailId", emailID);
                 jsonParam.put("UserPasswordHash", pass);
 
-                Log.i("JSON", "");
+                Log.i("JSON", conn.toString ());
                 DataOutputStream os = new DataOutputStream(conn.getOutputStream());
                 //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
                 os.writeBytes(jsonParam.toString());
@@ -279,6 +311,10 @@ public class LoginActivity extends AppCompatActivity {
                 Log.i("MSG", conn.getResponseMessage());
 
                 conn.disconnect();
+            } catch (SocketTimeoutException e){
+                Toast.makeText(getApplicationContext(), "Socket Timeout", Toast.LENGTH_LONG).show();
+            } catch (ConnectTimeoutException bug) {
+                Toast.makeText(getApplicationContext(), "Connection Timeout", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -295,15 +331,13 @@ public class LoginActivity extends AppCompatActivity {
                 //Log.d("fai", result.toString());
                 Toast.makeText(getBaseContext(),"Email or Password Incorrect" ,Toast.LENGTH_LONG).show();
             }else {
-                sharedPrefs =  new SharedPrefs();
-                SharedPreferences.Editor editor = getSharedPreferences(USERID, MODE_PRIVATE).edit();
-                editor.putString("Userid",result.toString().replace("\"", "").toString());
-                editor.apply();
+                SharedPreferences.Editor editor = getSharedPreferences(USERID, Context.MODE_PRIVATE).edit();
+                String userid = result.toString().replace("\"", "").toString();
+                editor.putString("Userid",userid);
+                editor.commit ();
 
                 Toast.makeText(getBaseContext(),result.replace("\"", "").toString(), Toast.LENGTH_LONG).show();
 
-                Intent intent = new Intent(getBaseContext(),MainActivity.class);
-                startActivity(intent);
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.app.shoptree.shoptree;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
@@ -8,9 +9,13 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Handler;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -29,24 +35,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.app.shoptree.shoptree.Adapter.Category_Adapter;
+import com.app.shoptree.shoptree.Adapter.Cat_Prodct_Recyclerview;
+import com.app.shoptree.shoptree.Adapter.Category_grid_Recyclerview;
 import com.app.shoptree.shoptree.Adapter.ProductList_RecycleAdapter;
 import com.app.shoptree.shoptree.Adapter.Product_List_Adapter;
 import com.app.shoptree.shoptree.Adapter.SubCat_Adapter;
+import com.app.shoptree.shoptree.Utilities.ApiInterface;
 import com.app.shoptree.shoptree.Utilities.ExpandedGridView;
+import com.app.shoptree.shoptree.Utilities.RetroFit;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
 import com.app.shoptree.shoptree.database.MyDb;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.CategoryModel;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.app.shoptree.shoptree.model.Product;
+import com.app.shoptree.shoptree.model.ProductModel;
 import com.app.shoptree.shoptree.model.TestModel;
 import com.squareup.picasso.Picasso;
 
@@ -56,7 +63,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static com.app.shoptree.shoptree.MainActivity.setBadgeCount;
 
@@ -66,14 +78,27 @@ public class CategoryActivity extends AppCompatActivity {
     private TextView textView;
     private TextView textViewconnection;
     private ExpandedGridView gridView;
-    private ExpandedGridView productgridview;
     LayerDrawable mCartMenuIcon;
     private MenuItem search,cart;
-    SharedPrefs sharedPrefs;
+    private SharedPrefs sharedPrefs;
     private String catId;
     private RecyclerView product_grid;
-    private static long countproductoncart=0;
+    public static long countproductoncart=0;
     private ProductList_RecycleAdapter productList_recycleAdapter;
+    private SubCat_Adapter categoryAdapter;
+    private MyDb myDb;
+    private List<ProductModel> products;
+    private List<CategoryModel> categoryModels;
+    public static CategoryActivity instance;
+    private LinearLayoutManager manager;
+    private ApiInterface apiInterface;
+    private int pageNo = 1;
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private NestedScrollView scrollView;
+    private List<Object> objectList;
+    private Cat_Prodct_Recyclerview prodctRecyclerview;
+    private ProductList_RecycleAdapter adapter2;
 
 
     @Override
@@ -81,6 +106,7 @@ public class CategoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category);
 
+        instance = this;
         toolbar = (Toolbar) findViewById(R.id.toolbare);
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
@@ -96,54 +122,102 @@ public class CategoryActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(catName);
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorPrimaryDark));
         sharedPrefs = new SharedPrefs();
+        apiInterface = RetroFit.getClient ().create (ApiInterface.class);
+        scrollView = (NestedScrollView) findViewById (R.id.scroll);
+        objectList = new ArrayList<> ();
+        categoryModels = new ArrayList<> ();
+        products = new ArrayList<> ();
 
-        product_grid = (RecyclerView) findViewById(R.id.product_grid2);
-        int numberOfColumns = 3;
-        GridLayoutManager manager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
-        product_grid.setLayoutManager(manager);
-        product_grid.getLayoutManager().setAutoMeasureEnabled(true);
-        product_grid.setNestedScrollingEnabled(false);
-        product_grid.setHasFixedSize(false);
-
-        MyDb myDb = new MyDb(getBaseContext());
+        myDb = new MyDb(getBaseContext());
         myDb.open();
         countproductoncart = myDb.countproduct();
         myDb.close();
 
         //textView1.setText(catId);
-        gridView = (ExpandedGridView) findViewById(R.id.sub_cat_grid);
-        productgridview = (ExpandedGridView) findViewById(R.id.product_grid);
+        //gridView = (ExpandedGridView) findViewById(R.id.sub_cat_grid);
+        //categoryModels = new ArrayList<> ();
+        //categoryAdapter= new SubCat_Adapter(getBaseContext(),categoryModels);
+        //gridView.setAdapter(categoryAdapter);
+
         // check if you are connected or not
         if(isConnected()){
             //textViewconnection.setBackgroundColor(0xFF00CC00);
             //textViewconnection.setText("You are conncted");
             new aHttpAsyncTask().execute("https://shopptree.com/api/Api_Categories/"+catId);
-            new bHttpAsyncTask().execute("https://shopptree.com/api/Api_Products/"+catId);
+            //new bHttpAsyncTask().execute("https://shopptree.com/api/Api_Products/"+catId);
+
+           initProductRecyleview ();
 
         }
         else{
-            textViewconnection.setText("You are NOT conncted");
+            //textViewconnection.setText("You are NOT conncted");
         }
-        //APIClient();
-        //APIService apiService = APIClient().get
-        // call AsynTask to perform network operation on separate thread
 
-        //new AddtocartTask().execute("http://shopptree.com/api/Api_Carts/?id=10002&qty=33&cartid=1111");
+
     }
+    private void initProductRecyleview(){
+        product_grid = (RecyclerView) findViewById(R.id.product_grid2);
+        manager = new LinearLayoutManager (this);
+        product_grid.setLayoutManager(manager);
+        product_grid.getLayoutManager();
+        product_grid.setHasFixedSize(false);
+        products = new ArrayList<> ();
 
+        Category_grid_Recyclerview adapter1 = new Category_grid_Recyclerview (this,categoryModels);
+        adapter2 = new ProductList_RecycleAdapter (this,products);
+
+        prodctRecyclerview =  new Cat_Prodct_Recyclerview (getBaseContext (),objectList,adapter1,adapter2);
+
+        product_grid.setAdapter(prodctRecyclerview);
+        product_grid.addOnScrollListener (productgridScroll);
+        loadProducts (catId, pageNo);//load query
+
+    }
+    private RecyclerView.OnScrollListener productgridScroll = new RecyclerView.OnScrollListener () {
+        @Override
+        public void onScrollStateChanged (RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged (recyclerView, newState);
+
+        }
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            //Log.d("...", "Last Item Wow !");
+
+            if(dy > 0) //check for scroll down
+            {
+                //Log.d("...", "Last scroling !");
+
+                int visibleItemCount = manager.getChildCount();
+                int totalItemCount = manager.getItemCount();
+                int pastVisiblesItems = manager.findFirstVisibleItemPosition();
+
+                if (!isLoading)
+                {
+                    if ( (visibleItemCount + pastVisiblesItems) >= totalItemCount)
+                    {
+                        isLoading = true;
+                        Log.d("...", "Last Item Wow !"+ visibleItemCount+" " + pastVisiblesItems+" " +" "+ totalItemCount);
+                        //Do pagination.. i.e. fetch new data
+                        loadProducts (catId, ++pageNo);
+                    }
+                }
+            }
+
+        }
+    };
 
     protected void onStart() {
         super.onStart();
-
         Log.d("lifecycle","onStart invoked");
     }
     @Override
     protected void onResume() {
         super.onResume();
-        MyDb myDb = new MyDb(getBaseContext());
         myDb.open();
         countproductoncart = myDb.countproduct();
         myDb.close();
+        prodctRecyclerview.notifyDataSetChanged ();
         invalidateOptionsMenu();
         Log.d("lifecycle","onResume invoked");
     }
@@ -163,7 +237,14 @@ public class CategoryActivity extends AppCompatActivity {
         Log.d("lifecycle","onRestart invoked");
     }
 
+    public void update(){
+        myDb.open();
+        countproductoncart = myDb.countproduct();
+        myDb.close();
+        adapter2.notifyDataSetChanged ();
+        invalidateOptionsMenu();
 
+    }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -172,9 +253,7 @@ public class CategoryActivity extends AppCompatActivity {
         mCartMenuIcon = (LayerDrawable) menu.findItem(R.id.action_cart).getIcon();
         //search =(MenuItem) menu.findItem(R.id.action_search);
         //searchView.setMenuItem(search);
-        cart =(MenuItem) menu.findItem(R.id.action_cart);
-        ArrayList<CartModel> cartModels = new ArrayList<>();
-
+        cart = (MenuItem) menu.findItem(R.id.action_cart);
 
         setBadgeCount(this, mCartMenuIcon, String.valueOf(countproductoncart));
         cart.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
@@ -189,7 +268,10 @@ public class CategoryActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    public void refre(){
+        loadProducts (catId, ++pageNo);
 
+    }
 
     public boolean isConnected(){
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Activity.CONNECTIVITY_SERVICE);
@@ -199,10 +281,10 @@ public class CategoryActivity extends AppCompatActivity {
         else
             return false;
     }
-    private class aHttpAsyncTask extends AsyncTask<String, Void, ArrayList<CategoryModel>> {
+    private class aHttpAsyncTask extends AsyncTask<String, Void, List<CategoryModel>> {
         @Override
-        protected ArrayList<CategoryModel> doInBackground(String... urls) {
-            ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
+        protected List<CategoryModel> doInBackground(String... urls) {
+            List<CategoryModel> categoryModelArrayList = new ArrayList<>();
             categoryModelArrayList.clear();
             String abc = JsonParser.getData(urls[0]);
 
@@ -225,78 +307,57 @@ public class CategoryActivity extends AppCompatActivity {
         }
         // onPostExecute displays the results of the AsyncTask.
         @Override
-        protected void onPostExecute(ArrayList<CategoryModel> result) {
-            //Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
-            SubCat_Adapter categoryAdapter = new SubCat_Adapter(getBaseContext(),result);
-            gridView.setAdapter(categoryAdapter);
-            gridView.setExpanded(true);
-            //textView.setText(result.toString());
-        }
-    }
+        protected void onPostExecute(List<CategoryModel> result) {
+            if (result.size ()>0) {
+                loadProducts (catId, pageNo);//load query
 
-    private class bHttpAsyncTask extends AsyncTask<String, Void, ArrayList<Product>> {
-        @Override
-        protected ArrayList<Product> doInBackground(String... urls) {
-            ArrayList<Product> productArrayList = new ArrayList<>();
-            productArrayList.clear();
-            String abc = JsonParser.getData(urls[0]);
-
-            try {
-                JSONArray jsonArray = new JSONArray(abc);
-                for (int i =0;i<jsonArray.length();i++){
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    String pmid = jsonObject.getString("PMID");
-                    //String prodctid = jsonObject.getString("ProductID");
-                    String name = jsonObject.getString("ProName");
-                    String desc = jsonObject.getString("ProDescription");
-                    String img = jsonObject.getString("ProPhotoMain");
-                    String unit = jsonObject.getString("UnitType");
-                    Double oldprice = Double.valueOf(jsonObject.getString("ProMrp"));
-                    Double newprice = Double.valueOf(jsonObject.getString("ProSellerPrice"));
-
-                    Product product = new Product("1",pmid,name,"0","0",oldprice,newprice,img,unit,desc);
-                    productArrayList.add(product);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+                objectList.add (result.get (0));
+                categoryModels.addAll (result);
+                prodctRecyclerview.notifyItemInserted (result.size () - 1);
             }
-            return productArrayList;
-        }
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(ArrayList<Product> result) {
-            //Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
-            //product_adapter = new Product_List_Adapter2(getBaseContext(),result);
-            //productgridview.setAdapter(product_adapter);
-            //productgridview.setExpanded(true);
-            //textView.setText(result.toString());
-            productList_recycleAdapter = new ProductList_RecycleAdapter(getBaseContext(), result);
-            product_grid.setAdapter(productList_recycleAdapter);
-
-
         }
     }
 
-    /*private class AddtocartTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            ArrayList<Product> productArrayList = new ArrayList<>();
-            productArrayList.clear();
-            String abc = JsonParser.getData(urls[0]);
+    private void loadProducts(String id,int pageNo){
+        final ProgressDialog progressDialog = new ProgressDialog (CategoryActivity.this);
+        progressDialog.show ();
+        apiInterface.getProducts (id,pageNo).enqueue (new Callback<ArrayList<ProductModel>> () {
+            @Override
+            public void onResponse (Call<ArrayList<ProductModel>> call, Response<ArrayList<ProductModel>> response) {
+                if(response.isSuccessful ()){
+                    ArrayList<ProductModel> productModels = response.body ();
+                    if(productModels.size ()>0){
+                        Log.d("page size", String.valueOf (response.code ()));
+                        objectList.add (productModels.get (0));
+                        products.addAll (productModels);
+
+                        adapter2.notifyItemInserted (products.size ()-1);
+
+                        //prodctRecyclerview.notifyDataSetChanged ();
+                        isLoading = false;
+                        progressDialog.dismiss ();
+                    }else {
+                        isLastPage = true;
+                        progressDialog.dismiss ();
+                    }
+                    Log.d("response code", String.valueOf (response.body ()));
 
 
+                }
 
-            return abc;
-        }
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(String  result) {
-            Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG).show();
+                if (String.valueOf (response.body ()).equals ("404")){
+                    Log.d("response code", String.valueOf (response.code ()));
 
-        }
-    }*/
+                }
 
+            }
 
+            @Override
+            public void onFailure (Call<ArrayList<ProductModel>> call, Throwable t) {
+
+            }
+        });
+    }
 
 
 

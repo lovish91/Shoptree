@@ -24,16 +24,16 @@ public class SharedPrefs {
     public static final String PREFS_NAME = "PRODUCT_APP";
     public static final String USERINFO = "userinfo";
     public static final String CARTINFO = "cart";
+    public static String CARTID ;
 
     public SharedPrefs() {
         super();
     }
 
 
-
     public UserInfo getUserInfo(Context context){
         UserInfo userInfo = new UserInfo();
-        userInfo= null;
+        userInfo = null;
         String userinfo="";
         SharedPreferences prfs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         if (prfs.contains(USERINFO)){
@@ -115,5 +115,30 @@ public class SharedPrefs {
     }
     return count;
     }
+    public String getsetTempCartID(Context context){
+        String tempcart;
+        SharedPreferences.Editor editor = context.getSharedPreferences(CARTID, MODE_PRIVATE).edit();
+        tempcart = String.valueOf (System.currentTimeMillis());
+        editor.putString("cart_id",tempcart);
+        editor.apply();
+        return tempcart;
+    }
+    public String getTempCartID(Context context){
+        String tempcart;
+        SharedPreferences prfs = context.getSharedPreferences(CARTID, Context.MODE_PRIVATE);
+        tempcart = prfs.getString("cart_id", "null");
+        if (tempcart.equals ("null")){
+            SharedPreferences.Editor editor = context.getSharedPreferences(CARTID, MODE_PRIVATE).edit();
+            tempcart = String.valueOf (System.currentTimeMillis());
+            editor.putString("cart_id",tempcart);
+            editor.apply();
+        }
+
+
+        return tempcart;
+    }
+
+
+
 }
 

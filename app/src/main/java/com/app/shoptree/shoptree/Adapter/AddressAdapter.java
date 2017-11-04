@@ -15,10 +15,12 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.app.shoptree.shoptree.CategoryActivity;
+import com.app.shoptree.shoptree.EditAddressActivity;
 import com.app.shoptree.shoptree.MyAddressActivity;
 import com.app.shoptree.shoptree.R;
 import com.app.shoptree.shoptree.model.Address;
 import com.app.shoptree.shoptree.model.CategoryModel;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ public class AddressAdapter extends ArrayAdapter {
     private RadioButton mSelectedRB;
     private int mSelectedPosition = -1;
     int Resource;
+     int ct = 0;
     public AddressAdapter(Context context,int resource, ArrayList<Address> addresses){
         super(context, resource, addresses);
 
@@ -86,6 +89,28 @@ public class AddressAdapter extends ArrayAdapter {
         holder.userpin = (TextView) rowView.findViewById(R.id.userpin);
         holder.optionMenu = (ImageView) rowView.findViewById(R.id.userOptionMenu);
         holder.mRadioButton = (RadioButton) rowView.findViewById(R.id.selectedadd);
+        if (position ==ct){
+            holder.mRadioButton.setChecked (true);
+
+        }
+        //holder.mRadioButton.setTag(position);
+
+        /*if (ct==1 || ct==4|| ct==7)
+        {
+            Log.i("count", String.valueOf (ct)+ address.getUserAddressID ());
+
+            holder.mRadioButton.setChecked (true);
+
+            ct++;
+        }
+        else
+        {
+            Log.i("count e", String.valueOf (ct));
+
+            holder.mRadioButton.setChecked (false);
+            ct++;
+
+        }*/
 
         holder.usermobile.setText(address.getUserMobile());
         holder.useraddresslocation.setText(address.getUserLocationName());
@@ -96,7 +121,7 @@ public class AddressAdapter extends ArrayAdapter {
         holder.userstate.setText(address.getUserState());
         holder.optionMenu.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 PopupMenu popupMenu = new PopupMenu(mcontext, holder.optionMenu);
                 popupMenu.inflate(R.menu.address_menu);
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -104,10 +129,12 @@ public class AddressAdapter extends ArrayAdapter {
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
                             case R.id.editAddress:
+                                Intent intent = new Intent(getContext(), EditAddressActivity.class);
+                                Gson gson = new Gson();
+                                String addObj = gson.toJson(address);
+                                intent.putExtra("userAddress",addObj);
+                                view.getContext().startActivity(intent);
                                 //handle menu1 click
-                                break;
-                            case R.id.deleteAddress:
-                                //handle menu2 click
                                 break;
                             //case R.id.menu3:
                                 //handle menu3 click
@@ -131,20 +158,32 @@ public class AddressAdapter extends ArrayAdapter {
                 Log.i("JSON", MyAddressActivity.addressid);
 
                 mSelectedRB = (RadioButton) view;
+                notifyDataSetChanged ();
             }
         });
 
+
+        if(mSelectedPosition != position){
+            //holder.mRadioButton.setChecked (position ==ct);
+
+            holder.mRadioButton.setChecked(false);
+        }else{
+            holder.mRadioButton.setChecked(true);
+            if(mSelectedRB != null && holder.mRadioButton != mSelectedRB){
+                mSelectedRB = holder.mRadioButton;
+            }
+        }
 
         rowView.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
+
                 //Intent intent = new Intent(v.getContext(), CategoryActivity.class).putExtra("categoryId",address.getStatus());
                 //v.getContext().startActivity(intent);
                 // TODO Auto-generated method stub
             }
         });
-
         return rowView;
     }
 }

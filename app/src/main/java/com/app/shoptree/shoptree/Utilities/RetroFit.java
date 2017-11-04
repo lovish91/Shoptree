@@ -6,6 +6,7 @@ import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -19,18 +20,24 @@ public class RetroFit {
 
     public static Retrofit getClient() {
 
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor ();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+
         OkHttpClient okHttpClient = new OkHttpClient().newBuilder().addInterceptor(new Interceptor() {
+
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
                 Request originalRequest = chain.request();
-
                 Request.Builder builder = originalRequest.newBuilder()
-                        .header("API_KEY","MyApiKey");
+
+                        .header("API_KEY","MyApiKey")
+                        .header("Accept","application/json");
 
                 Request newRequest = builder.build();
                 return chain.proceed(newRequest);
             }
-        }).build();
+        }).addInterceptor (logging).build();
 
         if (retrofit==null) {
             retrofit = new Retrofit.Builder()

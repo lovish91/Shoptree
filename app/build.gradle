@@ -17,7 +17,7 @@ repositories {
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '26.0.2'
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "com.app.shoptree.shoptree"
@@ -39,13 +39,9 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':library')
-
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
-
-
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
@@ -62,7 +58,10 @@ dependencies {
     compile 'com.joanzapata.iconify:android-iconify-fontawesome:2.1.+'
     compile 'com.daimajia.slider:library:1.1.5@aar'
     compile 'com.daimajia.androidanimations:library:1.0.3@aar'
-
-
+    compile 'me.srodrigo:androidhintspinner:1.0.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'swarajsaaj:otpreader:1.1'
+    compile 'com.karumi:dexter:4.1.0'
     testCompile 'junit:junit:4.12'
 }

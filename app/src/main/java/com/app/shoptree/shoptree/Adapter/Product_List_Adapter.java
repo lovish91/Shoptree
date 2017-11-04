@@ -223,6 +223,7 @@ public class Product_List_Adapter extends BaseAdapter{
                         sharedPrefs.addCartItem(mcontext,cartModel);
                         holder.Product_add_minus.setVisibility(View.VISIBLE);
                         holder.addToCart.setVisibility(View.INVISIBLE);
+                        CategoryActivity.countproductoncart = CategoryActivity.countproductoncart+1;
                         notifyDataSetChanged();
                     }
                     Log.i("InputS", abc.toString());

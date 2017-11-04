@@ -29,6 +29,8 @@ import android.widget.Toast;
 
 import com.app.shoptree.shoptree.Adapter.Cart;
 import com.app.shoptree.shoptree.Adapter.Cart_Adapter;
+import com.app.shoptree.shoptree.Utilities.ApiInterface;
+import com.app.shoptree.shoptree.Utilities.RetroFit;
 import com.app.shoptree.shoptree.Utilities.SharedPrefs;
 import com.app.shoptree.shoptree.model.CartModel;
 import com.app.shoptree.shoptree.model.UserInfo;
@@ -41,25 +43,35 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.zip.Inflater;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 import static com.app.shoptree.shoptree.MainActivity.setBadgeCount;
 
 public class CartActivity extends AppCompatActivity {
 
     private ListView cartlist;
-    private TextView emptycart,cartgrandTotol;
+    private TextView emptycart,cartgrandTotol,priceTotal,priceText,delivery;
     private RecyclerView cart;
-    private Cart cartadap;
     private Button checkout;
     private Toolbar cartToolbar;
-    private RelativeLayout cartfooter;
+    private   RelativeLayout cartfooter;
     private DecimalFormat df = new DecimalFormat("0.#");
     private double grandtot = 0;
-    private static SharedPrefs sharedPrefs = new SharedPrefs();
+    private static SharedPrefs sharedPrefs ;
     private MenuItem search,carts;
     LayerDrawable mCartMenuIcon;
     UserInfo userInfo = new UserInfo();
     public static String USERID ="Userid";
     private String userid ="";
+    private ArrayList<CartModel> cartModels = new  ArrayList<CartModel>();
+    private ApiInterface apiInterface;
+    private Cart_Adapter categoryAdapter;
+    private ViewGroup footerView;
+    public static CartActivity instance;
+    private TextView grandtotal;
 
 
     @Override
@@ -67,6 +79,7 @@ public class CartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
 
+        instance =this;
         cartlist = (ListView) findViewById(R.id.cartlist);
         cartlist.setDividerHeight(0);
         //Adding view to mlist header and footer
@@ -92,16 +105,16 @@ public class CartActivity extends AppCompatActivity {
 
         SharedPreferences prfs = getSharedPreferences(USERID, Context.MODE_PRIVATE);
         userid = prfs.getString("cart_id", "");
-        Log.d("fai", userid.toString()+"nmvm");
-
+        //Log.d("fai", userid.toString()+"nmvm");
+        sharedPrefs = new SharedPrefs();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         cart.setLayoutManager(layoutManager);
 
         cart.setItemAnimator(new DefaultItemAnimator());
 
-
         new HttpAsyncTask().execute("https://shopptree.com/api/Api_Carts?Cartid=001");
+        categoryAdapter = new Cart_Adapter(getBaseContext(),cartModels);
     }
 
 
@@ -119,11 +132,11 @@ public class CartActivity extends AppCompatActivity {
        // headerTitle.setText(getResources().getString(R.string.app_name));//set the text to Header View
        // cartlist.addHeaderView(headerView);//Add view to list view as header view
 
-        ViewGroup footerView = (ViewGroup) inflater.inflate(R.layout.grand_total, null, false);
-        TextView priceTotal = (TextView) footerView.findViewById(R.id.Price);
-        TextView priceText = (TextView) footerView.findViewById(R.id.Price_text);
-        TextView delivery = (TextView) footerView.findViewById(R.id.delivery_charge);
-        TextView grandtotal = (TextView) footerView.findViewById(R.id.TotalPayableAmount);
+         footerView = (ViewGroup) inflater.inflate(R.layout.grand_total, null, false);
+        priceTotal = (TextView) footerView.findViewById(R.id.Price);
+        priceText = (TextView) footerView.findViewById(R.id.Price_text);
+        delivery = (TextView) footerView.findViewById(R.id.delivery_charge);
+        grandtotal = (TextView) footerView.findViewById(R.id.TotalPayableAmount);
         priceText.setText("Price ("+items+")items");
         priceTotal.setText(getResources().getString(R.string.Rs) +" "+ df.format(price));
         if (price<500){
@@ -135,28 +148,75 @@ public class CartActivity extends AppCompatActivity {
         }
         grandtotal.setText(getResources().getString(R.string.Rs) +" "+ String.valueOf(df.format(grandtot)));
         cartgrandTotol.setText(getResources().getString(R.string.Rs) +" "+ String.valueOf(df.format(grandtot)));
+        cartlist.addFooterView(footerView);//Add view to list view as footer view
 
         //set the text to Footer View
         checkout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                if (userid == " "){
+                UserInfo userInfo = sharedPrefs.getUserInfo (getBaseContext ());
+                if (userInfo == null){
                    Intent in = new Intent(getBaseContext(),LoginActivity.class);
                     startActivity(in);
                 }else {
-                    Intent in = new Intent(getBaseContext(), MyAddressActivity.class)
+                    updateCart ("001",userInfo.getUserID ());
+                    //Intent in = new Intent(getBaseContext(), MyAddressActivity.class)
                             //.putExtra("userid",userInfo.getUserId())
-                            .putExtra("grandTotal",String.valueOf(grandtot));
-                    startActivity(in);
+                      //      .putExtra("grandTotal",String.valueOf(grandtot));
+                    //startActivity(in);
                 }
 
             }
         });
-        cartlist.addFooterView(footerView);//Add view to list view as footer view
+
+    }
+    private void updateCart(String cartId,String userId){
+        apiInterface = RetroFit.getClient().create(ApiInterface.class);
+        String a = sharedPrefs.getTempCartID (getBaseContext ());
+        apiInterface.updateCart (cartId,userId).enqueue (new Callback<ResponseBody> () {
+          @Override
+          public void onResponse (Call<ResponseBody> call, Response<ResponseBody> response) {
+          Log.d("succes", String.valueOf (response.code ()));
+
+          if (response.isSuccessful ()) {
+              Intent in = new Intent(CartActivity.this, MyAddressActivity.class)
+                      //.putExtra("userid",userInfo.getUserId())
+                      .putExtra("grandTotal",String.valueOf(grandtot));
+              startActivity(in);
+           }
+           }
+            @Override
+            public void onFailure (Call<ResponseBody> call, Throwable t) {
+
+            }
+          }
+        );
 
     }
 
+
+    public void refresh(int cartsize,double cartamount){
+        //Toast.makeText(getBaseContext (),  "is removed ", Toast.LENGTH_SHORT).show();
+        //grandtotal.setText ("zero");
+        //cartlist.removeFooterView (footerView);
+        if (cartsize>0){
+            priceText.setText("Price ("+cartsize+")items");
+            priceTotal.setText(getResources().getString(R.string.Rs) +" "+ df.format(cartamount));
+            if (cartamount<500){
+                delivery.setText(getResources().getString(R.string.Rs)+"49");
+                grandtot = cartamount + 49;
+            }else {
+                grandtot = cartamount + 0;
+                delivery.setText(getResources().getString(R.string.Rs)+"0");
+            }
+            grandtotal.setText(getResources().getString(R.string.Rs) +" "+ String.valueOf(df.format(grandtot)));
+            cartgrandTotol.setText(getResources().getString(R.string.Rs) +" "+ String.valueOf(df.format(grandtot)));
+        }else {
+            cartfooter.setVisibility (View.GONE);
+            emptycart.setVisibility (View.VISIBLE);
+            cartlist.removeFooterView (footerView);
+        }
+    }
 
     private class HttpAsyncTask extends AsyncTask<String, Void, ArrayList<CartModel>> {
         @Override
@@ -192,19 +252,19 @@ public class CartActivity extends AppCompatActivity {
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(ArrayList<CartModel> result) {
-            Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
             //sharedPrefs.SaveCart(getBaseContext(),result);
-
-            Cart_Adapter categoryAdapter = new Cart_Adapter(getBaseContext(),result);
+            cartModels.addAll (result);
             cartlist.setAdapter(categoryAdapter);
+            categoryAdapter.notifyDataSetChanged ();
 
             if (result.size()>0){
                 emptycart.setVisibility(View.INVISIBLE);
                 cartfooter.setVisibility(View.VISIBLE);
                 addHeaderFooterView(result);
-            }
-            for (CartModel categoryModel :result ){
-                //textView.setText(categoryModel.getCatImage());
+            }else{
+                //cartlist.removeAllViews ();
+
+
             }
 
         }

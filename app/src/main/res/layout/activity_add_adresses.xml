@@ -1,113 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+<FrameLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="18dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.app.shoptree.shoptree.AddAdressesActivity">
+<ScrollView
+    android:layout_marginTop="?attr/actionBarSize"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+   <include layout="@layout/address_layout"
+       android:layout_height="wrap_content"
+       android:layout_width="match_parent"/>
+</ScrollView>
+<FrameLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content">
+<android.support.v7.widget.Toolbar
+    android:id="@+id/addAddresstoolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="#3a3737"
+    android:elevation="4dp">
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:theme="@style/AppThemes">
-        <EditText android:id="@+id/UserMobile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="phone"
-            android:hint="Mobile No."
-            android:theme="@style/AppThemes"/>
-    </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:theme="@style/AppThemes">
-            <EditText android:id="@+id/UserLocationName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:hint="Location Name"
-                android:theme="@style/AppThemes"/>
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:theme="@style/AppThemes">
-            <EditText android:id="@+id/UserAddreddLine1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:hint="AddreddLine 1"
-                android:theme="@style/AppThemes"/>
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:theme="@style/AppThemes">
-            <EditText android:id="@+id/UserAddreddLine2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:hint="Addredd Line 2"
-                android:theme="@style/AppThemes"/>
-        </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:theme="@style/AppThemes">
-            <EditText android:id="@+id/UserAddreddLine3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:hint="Addredd Line 3"
-                android:theme="@style/AppThemes"/>
-        </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:theme="@style/AppThemes">
-        <EditText android:id="@+id/UserPin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:hint="User Pin"
-            android:theme="@style/AppThemes"/>
-    </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:theme="@style/AppThemes">
-    <android.support.v7.widget.AppCompatSpinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/UserState">
-    </android.support.v7.widget.AppCompatSpinner>
-    </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:theme="@style/AppThemes">
-    <android.support.v7.widget.AppCompatSpinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/UserCity">
-    </android.support.v7.widget.AppCompatSpinner>
-    </android.support.design.widget.TextInputLayout>
-</LinearLayout>
+        android:text="Add Address"
+        android:layout_marginLeft="0dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="20sp"
+        android:textStyle="bold|italic" />
+</android.support.v7.widget.Toolbar>
+</FrameLayout>
+</FrameLayout>

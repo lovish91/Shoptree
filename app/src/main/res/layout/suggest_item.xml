@@ -7,12 +7,14 @@
         android:id="@+id/suggestion_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/search_view_text_padding"
+        android:paddingLeft="20dp"
         android:paddingRight="@dimen/search_view_text_padding"
-        android:textColor="#727272"
+        android:textColor="@color/theme_background_inverse"
         android:layout_centerVertical="true"
         android:focusable="false"
-        android:textSize="16sp" />
+        android:text="fjsdf"
+        android:layout_margin="15dp"
+        android:textSize="20sp"/>
 
     <ImageView
         android:id="@+id/suggestion_icon"
@@ -22,6 +24,5 @@
         android:background="@android:color/transparent"
         android:paddingLeft="@dimen/search_icon_padding"
         android:paddingRight="@dimen/search_icon_padding"
-        android:focusable="false"
-        android:src="@drawable/ic_suggestion" />
+        android:focusable="false"/>
 </RelativeLayout>

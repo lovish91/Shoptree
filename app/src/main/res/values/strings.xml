@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">SHOPPTREE</string>
+    <string name="spinerTitle">Select</string>
+
     <string-array name="query_suggestions">
         <item>Android</item>
         <item>iOS</item>

@@ -15,7 +15,7 @@
 <RelativeLayout
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="10dp">
+    android:padding="15dp">
 
     <ImageView
         android:layout_width="70dp"
@@ -55,37 +55,45 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:background="@drawable/ic_delete_forever_black_24dp"/>
+        android:background="@drawable/ic_close_black_24dp"/>
+
     <LinearLayout
         android:id="@+id/main"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_alignParentRight="true"
-        android:layout_below="@id/Product_Unit">
-            <ImageButton
-                android:id="@+id/Product_minus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="3dp"
-                android:background="@drawable/addproductbutton"
-                android:src="@drawable/ic_remove_black_24dp"/>
+        android:layout_below="@id/Product_Unit"
+        android:background="@drawable/addminusbutton"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/Product_minus"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/addminusbutton_selector"
+            android:padding="5dp"
+            android:src="@drawable/ic_remove_white"/>
+
         <TextView
             android:id="@+id/Product_quantity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1"
             android:layout_gravity="center_vertical"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:textSize="15dp"/>
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:padding="5dp"
+            android:text="1"
+            android:textColor="@color/my_awesome_color"
+            android:textSize="17dp"/>
+
         <ImageButton
             android:id="@+id/Product_plus"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="3dp"
-            android:background="@drawable/addproductbutton"
-            android:src="@drawable/ic_add_black_24dp"/>
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/addminusbutton_selector"
+            android:padding="5dp"
+            android:src="@drawable/ic_add_white"/>
     </LinearLayout>
     <View
         android:id="@+id/divider"
@@ -96,12 +104,13 @@
         android:background="@color/theme_icons" />
     <TextView
         android:id="@+id/TotalAmount"
-        android:text="sdf"
-        android:layout_marginTop="4dp"
+        android:text="G total"
+        android:layout_marginTop="5dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:textSize="17sp"
         android:gravity="center_vertical"
+        android:layout_centerVertical="true"
         android:textColor="@color/theme_background_inverse"
         android:layout_below="@+id/divider"
         android:layout_width="wrap_content"
